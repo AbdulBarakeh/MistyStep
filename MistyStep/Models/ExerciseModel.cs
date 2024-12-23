@@ -1,2 +1,2 @@
 namespace MistyStep.Models;
-public record ExerciseModel(string Name, double? LastRepetitions, double? CurrentRepetitions, double? RecordRepetitions );
+public record ExerciseModel(string Name);

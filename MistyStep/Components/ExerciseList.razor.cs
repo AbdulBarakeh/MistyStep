@@ -10,12 +10,5 @@ public partial class ExerciseList
     {
         Exercises.AddRandomExercises();
     }
-    //protected override void OnAfterRender(bool firstRender)
-    //{
-    //    if (firstRender)
-    //    {
-    //        Exercises.AddRandomExercises();
-    //        Exercises.Add(new ExerciseModel("Test",5,5,5));
-    //    }
-    //}
+
 }

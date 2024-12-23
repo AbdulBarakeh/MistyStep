@@ -14,12 +14,7 @@ public static class ExerciseExtensions
         {
             exercises.Add(new ExerciseModel(
 
-                 Enum.GetName(typeof(CommonExercises), random.Next(0, possibleNum)),
-
-                random.NextDouble() * 25, // Generates a random double between 0.0 and 25.0
-                random.NextDouble() * 25, // Generates a random double between 0.0 and 25.0
-                random.NextDouble() * 25 // Generates a random double between 0.0 and 25.0
-                )
+                 Enum.GetName(typeof(CommonExercises), random.Next(0, possibleNum)))
             );
         }
 

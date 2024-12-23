@@ -5,12 +5,8 @@
         {
             @foreach (var exercise in Exercises)
             {
-                @* <MudPaper Class="pa-5">Hello</MudPaper> *@
                 <MudPaper Class="pa-5">
-                    <MudPaper Class="pa-1"> @exercise.Name </MudPaper>
-                    <MudPaper Class="pa-1"> @exercise.CurrentRepetitions </MudPaper>
-                    <MudPaper Class="pa-1"> @exercise.LastRepetitions </MudPaper>
-                    <MudPaper Class="pa-1"> @exercise.RecordRepetitions </MudPaper>
+                    @exercise.Name
                 </MudPaper>
             }
         }
@@ -22,4 +18,3 @@
         }
     </MudStack>
 </div>
-@* <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" /> *@

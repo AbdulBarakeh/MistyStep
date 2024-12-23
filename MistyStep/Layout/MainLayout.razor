@@ -6,22 +6,24 @@
 <MudSnackbarProvider />
 
 <div class="stay-bottom">
-    <MudAppBar Color="Color.Primary" Fixed="false">
+@*     <MudAppBar Color="Color.Primary" Fixed="false">
         <MudLink Href="/Exercises" class=" mud-theme-primary">Øvelser</MudLink>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" />
-    </MudAppBar>
-    <div>
+    </MudAppBar> *@
+@*     <div>
         @Body
-    </div>
+    </div> *@
 
-    @* <MudTabs Elevation="4" Rounded="true" AlwaysShowScrollButtons="true" Color="@Color.Info" Class="mt-4" Position="Position.Bottom">
-    <MudTabPanel Text="Øvelser" OnClick="@(() =>navigator.NavigateTo("exercises"))">
+    <MudTabs Elevation="4" Rounded="true" AlwaysShowScrollButtons="true" Color="@Color.Info" Class="mt-4" Position="Position.Bottom">
+    <MudTabPanel Text="Øvelser" OnClick="@(() =>navigator.NavigateTo(""))">
     <ChildContent>
 
     @Body
     </ChildContent>
     </MudTabPanel>
+    </MudTabs>
+    @*
     <MudTabPanel Text="Timer" OnClick="@(() =>navigator.NavigateTo("timer"))">
     <ChildContent>
 
