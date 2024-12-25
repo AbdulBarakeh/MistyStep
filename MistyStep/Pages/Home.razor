@@ -1,14 +1,26 @@
 ﻿@page "/"
 @using MistyStep.Components
-<style>
-    .fabIcon {
-        position: absolute;
-        right: 2rem;
-        bottom: 2rem;
-    }
-</style>
-<div>
 
-    <ExerciseList></ExerciseList>
-    <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" />
-</div>
+
+<MudTabs Elevation="4" Rounded="true" AlwaysShowScrollButtons="true" Color="@Color.Info" Position="Position.Bottom">
+    <MudTabPanel Text="Øvelser">
+        <ChildContent>
+            <ExerciseOverview></ExerciseOverview>
+        </ChildContent>
+    </MudTabPanel>
+    <MudTabPanel Icon="@Icons.Material.Filled.PlayArrow">
+        <ChildContent>
+            <ActiveProgram></ActiveProgram>
+        </ChildContent>
+    </MudTabPanel>
+    <MudTabPanel Text="Program" >
+        <ChildContent>
+            <ProgramOverview></ProgramOverview>
+        </ChildContent>
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+}
+

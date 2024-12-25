@@ -1,10 +1,10 @@
+using MistyStep.Extensions;
 using MistyStep.Models;
-using MistyStep.Models.Extensions;
 namespace MistyStep.Components;
 public partial class ExerciseList
 {
 
-    public List<ExerciseModel> Exercises { get; set; } = [];
+    public List<Exercise> Exercises { get; set; } = [];
 
     protected override void OnInitialized()
     {

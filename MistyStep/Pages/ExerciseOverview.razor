@@ -1,0 +1,21 @@
+﻿@using MistyStep.Components
+<style>
+    .fabIcon {
+        position: absolute;
+        right: 2rem;
+        bottom: 2rem;
+    }
+</style>
+<div>
+
+    <ExerciseList></ExerciseList>
+    <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToExerciseCreation" />
+</div>
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    private void GoToExerciseCreation()
+    {
+        NavigationManager.NavigateTo("/create/exercise");
+    }
+}

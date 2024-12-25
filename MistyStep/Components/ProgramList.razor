@@ -1,0 +1,20 @@
+@namespace MistyStep.Components
+<div class="scroll-stack">
+    <MudStack>
+        @if (Programs is { Count: > 0 })
+        {
+            @foreach (var program in Programs)
+            {
+                <MudPaper Class="pa-5">
+                    @program.Name
+                </MudPaper>
+            }
+        }
+        else
+        {
+            <MudSkeleton />
+            <MudSkeleton Animation="Animation.False" />
+            <MudSkeleton Animation="Animation.Wave" />
+        }
+    </MudStack>
+</div>

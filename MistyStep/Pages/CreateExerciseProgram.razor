@@ -1,11 +1,11 @@
-﻿@page "/create/exercise"
+﻿@page "/create/program"
 @using MistyStep.Models
 @using MistyStep.Services
 <MudPaper Class="pa-4">
-    <MudForm @ref="form" Model="@ExerciseModel" @bind-IsValid="@success" @bind-Errors="@errors">
+    <MudForm @ref="form" Model="@ExerciseProgram" @bind-IsValid="@success" @bind-Errors="@errors">
         <MudTextField T="string" Label="Exercise Name" Required="true" RequiredError="Exercise name is required!" />
         <div class="d-flex align-center justify-space-between">
-            <MudButton OnClick="@(async ()=> await RegisterExercise())" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Register</MudButton>
+            <MudButton OnClick="@(async ()=> await RegisterProgram())" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Register</MudButton>
         </div>
     </MudForm>
 </MudPaper>
@@ -16,11 +16,11 @@
 
     [Inject] IExerciseService ExerciseService { get; set; } = null!;
     [Inject] NavigationManager NavigationManager { get; set; } = null!;
-    private Exercise ExerciseModel { get; set; } = null!;
+    private ExerciseProgram ExerciseProgram { get; set; } = null!;
 
-    private async Task RegisterExercise()
+    private async Task RegisterProgram()
     {
-        await ExerciseService.CreateNewExercise(ExerciseModel);
+        await ExerciseService.CreateNewExerciseProgram(ExerciseProgram);
         NavigationManager.NavigateTo("/");
     }
 }

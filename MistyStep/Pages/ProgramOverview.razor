@@ -1,0 +1,21 @@
+﻿@using MistyStep.Components
+<style>
+    .fabIcon {
+        position: absolute;
+        right: 2rem;
+        bottom: 2rem;
+    }
+</style>
+<div>
+
+    <ProgramList></ProgramList>
+    <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToProgramCreation" />
+</div>
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    private void GoToProgramCreation()
+    {
+        NavigationManager.NavigateTo("/create/Program");
+    }
+}
