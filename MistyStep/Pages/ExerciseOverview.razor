@@ -1,19 +1,51 @@
 ﻿@using MistyStep.Components
+@using MistyStep.Models
+@using MistyStep.Services
 <style>
     .fabIcon {
         position: absolute;
         right: 2rem;
         bottom: 2rem;
     }
+
+    .scroll-stack {
+        overflow: auto;
+        height: calc(100vh - var(--navbar-height));
+    }
+
 </style>
 <div>
 
-    <ExerciseList></ExerciseList>
+    <div class="scroll-stack">
+        <MudStack>
+            @if (Exercises is { Count: > 0 })
+            {
+                @foreach (var exercise in Exercises)
+                {
+                    <MudPaper Class="pa-5">
+                        @exercise.Name
+                    </MudPaper>
+                }
+            }
+            else
+            {
+                <MudSkeleton />
+                <MudSkeleton Animation="Animation.False" />
+                <MudSkeleton Animation="Animation.Wave" />
+            }
+        </MudStack>
+    </div>
     <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToExerciseCreation" />
 </div>
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
+    public List<Exercise> Exercises { get; set; } = [];
+
+    protected override void OnInitialized()
+    {
+        Exercises = ExerciseTestList.ExerciseList;
+    }
     private void GoToExerciseCreation()
     {
         NavigationManager.NavigateTo("/create/exercise");

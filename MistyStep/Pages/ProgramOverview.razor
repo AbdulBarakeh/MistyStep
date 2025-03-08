@@ -1,21 +1,55 @@
 ﻿@using MistyStep.Components
+@using MistyStep.Services
 <style>
     .fabIcon {
         position: absolute;
         right: 2rem;
         bottom: 2rem;
     }
+
+    .scroll-stack {
+        overflow: auto;
+        height: calc(100vh - var(--navbar-height));
+    }
+
 </style>
 <div>
 
-    <ProgramList></ProgramList>
+    <div class="scroll-stack">
+        <MudStack>
+            @if (Programs is { Count: > 0 })
+            {
+                @foreach (var program in Programs)
+                {
+                    <MudPaper Class="pa-5">
+                        @program.Name
+                    </MudPaper>
+                }
+            }
+            else
+            {
+                <MudSkeleton />
+                <MudSkeleton Animation="Animation.False" />
+                <MudSkeleton Animation="Animation.Wave" />
+            }
+        </MudStack>
+    </div>
+
     <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToProgramCreation" />
 </div>
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
+    public List<Models.ExerciseProgram> Programs { get; set; } = [];
+
+    protected override void OnInitialized()
+    {
+        Programs = ExerciseTestList.ExerciseProgramList;
+    }
+
     private void GoToProgramCreation()
     {
         NavigationManager.NavigateTo("/create/Program");
     }
+
 }
