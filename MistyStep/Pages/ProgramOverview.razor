@@ -22,7 +22,10 @@
                 @foreach (var program in Programs)
                 {
                     <MudPaper Class="pa-5">
-                        @program.Name
+                        <div>
+                            @program.Name
+                            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => RunProgram(program.Id))">Kør Program</MudButton>
+                        </div>
                     </MudPaper>
                 }
             }
@@ -52,4 +55,8 @@
         NavigationManager.NavigateTo("/create/Program");
     }
 
+    private void RunProgram(Guid id)
+    {
+        NavigationManager.NavigateTo($"/run/program/{id}");
+    }
 }

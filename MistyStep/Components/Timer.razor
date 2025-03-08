@@ -1,1 +1,57 @@
-﻿<h3>Timer</h3>
+﻿
+<h3>Timer</h3>
+<h1>Time remaining: @timeRemaining</h1>
+
+@code {
+
+    [Parameter]
+    public EventCallback OnTimerEnd { get; set; }
+    
+    [Parameter]
+    public EventCallback OnPauseTimerEnd { get; set; }
+
+    private TimeSpan timeRemaining;
+
+    private System.Threading.Timer timer;
+
+
+    public void StartTimer(TimeSpan timeDuration, bool isPauseTimer)
+    {
+        timeRemaining = timeDuration;
+            if (!isPauseTimer)
+            {
+
+                timer = new System.Threading.Timer(TimerCallback, null, 0, 1000);
+                return;
+            }
+            timer = new System.Threading.Timer(PauseTimerCallback, null, 0, 1000);
+    }
+
+    private async void TimerCallback(object state)
+    {
+        if (timeRemaining.TotalSeconds > 0)
+        {
+            timeRemaining = timeRemaining.Subtract(TimeSpan.FromSeconds(1));
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            timer.Dispose();
+            await OnTimerEnd.InvokeAsync(null);
+        }
+    }
+
+    private async void PauseTimerCallback(object state)
+    {
+        if (timeRemaining.TotalSeconds > 0)
+        {
+            timeRemaining = timeRemaining.Subtract(TimeSpan.FromSeconds(1));
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            timer.Dispose();
+            await OnPauseTimerEnd.InvokeAsync(null);
+        }
+    }
+}
