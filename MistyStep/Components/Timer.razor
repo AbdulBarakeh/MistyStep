@@ -6,25 +6,25 @@
 
     [Parameter]
     public EventCallback OnTimerEnd { get; set; }
-    
+
     [Parameter]
     public EventCallback OnPauseTimerEnd { get; set; }
 
     private TimeSpan timeRemaining;
 
-    private System.Threading.Timer timer;
+    private System.Threading.Timer? timer;
 
 
     public void StartTimer(TimeSpan timeDuration, bool isPauseTimer)
     {
         timeRemaining = timeDuration;
-            if (!isPauseTimer)
-            {
+        if (!isPauseTimer)
+        {
 
-                timer = new System.Threading.Timer(TimerCallback, null, 0, 1000);
-                return;
-            }
-            timer = new System.Threading.Timer(PauseTimerCallback, null, 0, 1000);
+            timer = new System.Threading.Timer(TimerCallback, null, 0, 1000);
+            return;
+        }
+        timer = new System.Threading.Timer(PauseTimerCallback, null, 0, 1000);
     }
 
     private async void TimerCallback(object state)
@@ -54,4 +54,5 @@
             await OnPauseTimerEnd.InvokeAsync(null);
         }
     }
+    
 }

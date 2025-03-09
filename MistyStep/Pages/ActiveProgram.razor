@@ -1,32 +1,45 @@
 ﻿@page "/run/program/{Id:guid}";
 @using MistyStep.Models
 @using MistyStep.Services
+@if (Program is not null)
+{
+    <MudPaper Class="pa-5">
+        @Program!.Name
+    </MudPaper>
+}
+@if (CurrentExercise is not null)
+{
+    <MudPaper Class="pa-5">
+        @CurrentExercise!.Name
+    </MudPaper>
+}
+@if (LastExerciseRecord is not null)
+{
 
-<MudPaper Class="pa-5">
-    @Program.Name
-</MudPaper>
+    <MudPaper Class="pa-5">
+        @LastExerciseRecord!.Sets
+    </MudPaper>
+}
 
-<MudPaper Class="pa-5">
-    @CurrentExercise.Name
-</MudPaper>
+@if (NextExercise is not null)
+{
 
-<MudPaper Class="pa-5">
-    @LastExerciseRecord.Sets
-</MudPaper>
-
-<MudPaper Class="pa-5">
-    @NextExercise.Name
-</MudPaper>
+    <MudPaper Class="pa-5">
+        @NextExercise!.Name
+    </MudPaper>
+}
 
 <MudInput @ref="Input" T="string" InputType="InputType.Text"></MudInput>
 
-<MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(CurrentExercise.ExerciseDuration,false))">Start</MudButton>
+<MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(TimeSpan.FromSeconds(5),false))">Start øvelse timer</MudButton>
+
+<MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(TimeSpan.FromSeconds(5),true))">Start pause timer</MudButton>
 
 <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
 
-<MistyStep.Components.Timer @ref="TimerComp" OnPauseTimerEnd="PauseTimerEnd" OnTimerEnd="TimerEnd"></MistyStep.Components.Timer>
+<MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
 
-<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" >STOP</MudButton>
+<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2">STOP</MudButton>
 
 
 @code {
@@ -34,21 +47,21 @@
     [Parameter]
     public Guid Id { get; set; }
 
-    public ExerciseProgram Program { get; set; }
+    public ExerciseProgram? Program { get; set; }
 
-    public Exercise CurrentExercise { get; set; }
+    public Exercise? CurrentExercise { get; set; }
 
-    public Exercise NextExercise { get; set; }
+    public Exercise? NextExercise { get; set; }
 
-    public ExerciseRecord ExerciseRecord { get; set; }
+    public ExerciseRecord? ExerciseRecord { get; set; }
 
-    public ExerciseRecord LastExerciseRecord { get; set; }
+    public ExerciseRecord? LastExerciseRecord { get; set; }
 
-    public Components.Timer TimerComp { get; set; }
+    public Components.Timer? TimerComp { get; set; }
 
     private int CurrentExerciseIndex { get; set; } = 0;
 
-    private MudInput<string> Input;
+    private MudInput<string>? Input { get; set; }
 
     protected override void OnInitialized()
     {
@@ -57,25 +70,29 @@
         NextExercise = Program.Exercises[CurrentExerciseIndex + 1];
     }
 
-    private void TimerEnd()
+    private async Task TimerEnd()
     {
-        //Start Pause Timer
-        TimerComp.StartTimer(Program.PauseDuration,true);
-        // GoToNextExercise();
+
+        // alarm sound
+
     }
 
-    private void PauseTimerEnd()
-    {
-        GoToNextExercise();
-    }
-    
+
     private void GoToNextExercise()
     {
         // ExerciseRecord = new ExerciseRecord(Guid.NewGuid(), DateTime.UtcNow, CurrentExercise.Id,Program.Id,double.Parse(input.Text));
         // LastExerciseRecord = ExerciseRecord;
+        if (CurrentExerciseIndex == Program?.Exercises.Count - 1)
+        {
+            // Program is done
+            return;
+        }
         CurrentExerciseIndex++;
         CurrentExercise = Program.Exercises[CurrentExerciseIndex];
-        NextExercise = Program.Exercises[CurrentExerciseIndex + 1];
+        if (CurrentExerciseIndex != Program?.Exercises.Count - 1)
+        {
 
+            NextExercise = Program.Exercises[CurrentExerciseIndex + 1];
+        }
     }
 }
