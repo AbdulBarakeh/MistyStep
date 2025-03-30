@@ -1,5 +1,6 @@
 ﻿@using MistyStep.Components
 @using MistyStep.Services
+@using System.Collections.ObjectModel
 <style>
     .fabIcon {
         position: absolute;
@@ -42,17 +43,24 @@
 </div>
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] IDialogService DialogService { get; set; }
 
-    public List<Models.ExerciseProgram> Programs { get; set; } = [];
+    public ObservableCollection<Models.ExerciseProgram> Programs { get; set; } = [];
 
     protected override void OnInitialized()
     {
-        Programs = ExerciseTestList.ExerciseProgramList;
+        ExerciseTestList.ExerciseProgramList.ForEach(program => Programs.Add(program));
+
     }
 
-    private void GoToProgramCreation()
+    private async Task GoToProgramCreation()
     {
-        NavigationManager.NavigateTo("/create/Program");
+        var temp = await DialogService.ShowAsync<CreateExerciseProgramDialog>();
+        _ = await temp.Result;
+
+        Programs.Clear();
+        ExerciseTestList.ExerciseProgramList.ForEach(program => Programs.Add(program));
+
     }
 
     private void RunProgram(Guid id)

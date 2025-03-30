@@ -30,32 +30,34 @@ public class ExerciseService : IExerciseService
 public static class ExerciseTestList
 {
     public static List<Exercise> ExerciseList { get; set; } = [
-        new Exercise(Guid.NewGuid(),"Pushups",TimeSpan.FromSeconds(60)),
-        new Exercise(Guid.NewGuid(),"Situps",TimeSpan.FromSeconds(60)),
-        new Exercise(Guid.NewGuid(),"Pullups",TimeSpan.FromSeconds(60)),
-        new Exercise(Guid.NewGuid(),"Chinups",TimeSpan.FromSeconds(60)),
-        new Exercise(Guid.NewGuid(),"Lunges",TimeSpan.FromSeconds(60)),
-        new Exercise(Guid.NewGuid(),"Punches",TimeSpan.FromSeconds(60))
+        new Exercise(Guid.NewGuid(),"Pushups",60,5),
+        new Exercise(Guid.NewGuid(),"Situps",60,4),
+        new Exercise(Guid.NewGuid(),"Pullups",60, 5),
+        new Exercise(Guid.NewGuid(),"Chinups",60,6),
+        new Exercise(Guid.NewGuid(),"Lunges",60,2),
+        new Exercise(Guid.NewGuid(),"Punches",60,3)
     ];
 
     public static List<ExerciseProgram> ExerciseProgramList { get; set; } = [
         new ExerciseProgram(Guid.NewGuid(),"Program 1", [
-            new(Guid.NewGuid(),"Pushups",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Situps",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Pullups",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Chinups",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Lunges",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Punches",TimeSpan.FromSeconds(60)),
-        ],TimeSpan.FromSeconds(60)),
+        new Exercise(Guid.NewGuid(),"Pushups",60,5),
+        new Exercise(Guid.NewGuid(),"Situps",60,4),
+        new Exercise(Guid.NewGuid(),"Pullups",60, 5),
+        new Exercise(Guid.NewGuid(),"Chinups",60,6),
+        new Exercise(Guid.NewGuid(),"Lunges",60,2),
+        new Exercise(Guid.NewGuid(),"Punches",60,3)
+        ],60),
         new ExerciseProgram(Guid.NewGuid(),"Program 2",[
-            new(Guid.NewGuid(),"Pushups",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Situps",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Pullups",TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Punches",TimeSpan.FromSeconds(60))
-        ],TimeSpan.FromSeconds(60)),
+                    new Exercise(Guid.NewGuid(),"Pushups",60,5),
+        new Exercise(Guid.NewGuid(),"Situps",60,4),
+        new Exercise(Guid.NewGuid(),"Pullups",60, 5),
+        new Exercise(Guid.NewGuid(),"Chinups",60,6)
+        ],60),
         new ExerciseProgram(Guid.NewGuid(),"Program 3",[
-            new(Guid.NewGuid(),"Lunges", TimeSpan.FromSeconds(60)),
-            new(Guid.NewGuid(),"Punches", TimeSpan.FromSeconds(60))
-        ],TimeSpan.FromSeconds(60)),
+        new Exercise(Guid.NewGuid(),"Pushups",60,5),
+        new Exercise(Guid.NewGuid(),"Situps",60,4),
+        new Exercise(Guid.NewGuid(),"Pullups",60, 5),
+        new Exercise(Guid.NewGuid(),"Punches",60,3)
+        ],60),
         ];
 }

@@ -4,20 +4,23 @@ public class Exercise
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
-    public TimeSpan? ExerciseDuration { get; set; }
+    public int? ExerciseDurationInSeconds { get; set; }
+    public double? PointPerRep { get; set; }
 
-    public Exercise(string Name, TimeSpan ExerciseDuration)
+    public Exercise(string Name, int? ExerciseDurationInSeconds, double PointPerRep)
     {
         this.Id = Guid.NewGuid();
         this.Name = Name;
-        this.ExerciseDuration = ExerciseDuration;
+        this.ExerciseDurationInSeconds = ExerciseDurationInSeconds;
+        this.PointPerRep = PointPerRep;
     }
 
-    public Exercise(Guid Id, string Name, TimeSpan ExerciseDuration)
+    public Exercise(Guid Id, string Name, int? ExerciseDurationInSeconds, double PointPerRep)
     {
         this.Id = Id;
         this.Name = Name;
-        this.ExerciseDuration = ExerciseDuration;
+        this.ExerciseDurationInSeconds = ExerciseDurationInSeconds;
+        this.PointPerRep = PointPerRep;
     }
 
     public Exercise()
@@ -26,6 +29,32 @@ public class Exercise
     }
 }
 
-public record ExerciseProgram(Guid Id, string Name, List<Exercise> Exercises, TimeSpan PauseDuration);
+public class ExerciseProgram
+{
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+    public List<Exercise>? Exercises { get; set; }
+    public int? PauseDurationInSeconds { get; set; }
+
+    public ExerciseProgram(Guid Id, string Name, List<Exercise> Exercises, int? PauseDurationInSeconds)
+    {
+        this.Id = Id;
+        this.Name = Name;
+        this.Exercises = Exercises;
+        this.PauseDurationInSeconds = PauseDurationInSeconds;
+    }
+    public ExerciseProgram( string Name, List<Exercise> Exercises, int? PauseDurationInSeconds)
+    {
+        this.Id = Guid.NewGuid();
+        this.Name = Name;
+        this.Exercises = Exercises;
+        this.PauseDurationInSeconds = PauseDurationInSeconds;
+    }
+
+    public ExerciseProgram()
+    {
+        this.Id = Guid.NewGuid();
+    }
+}
 
 public record ExerciseRecord(Guid Id, DateTime RecordSet, Guid ExerciseId, Guid ExerciseProgramId, double Sets);

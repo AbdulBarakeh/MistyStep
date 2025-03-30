@@ -4,20 +4,20 @@
 @if (Program is not null)
 {
     <MudPaper Class="pa-5">
-        @Program!.Name
+        Current Program:   @Program!.Name
     </MudPaper>
 }
 @if (CurrentExercise is not null)
 {
     <MudPaper Class="pa-5">
-        @CurrentExercise!.Name
+        Current Exercise:  @CurrentExercise!.Name
     </MudPaper>
 }
 @if (LastExerciseRecord is not null)
 {
 
     <MudPaper Class="pa-5">
-        @LastExerciseRecord!.Sets
+        Last Exercise Record:   @LastExerciseRecord!.Sets
     </MudPaper>
 }
 
@@ -25,21 +25,22 @@
 {
 
     <MudPaper Class="pa-5">
-        @NextExercise!.Name
+        Next Exercise:  @NextExercise!.Name
     </MudPaper>
 }
 
-<MudInput @ref="Input" T="string" InputType="InputType.Text"></MudInput>
+<MudPaper Class="pa-5">
+    Number of Repetetions:
+    <MudInput @ref="Input" T="double" InputType="InputType.Number"></MudInput>
+</MudPaper>
 
 <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(TimeSpan.FromSeconds(5),false))">Start øvelse timer</MudButton>
-
-<MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(TimeSpan.FromSeconds(5),true))">Start pause timer</MudButton>
 
 <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
 
 <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
 
-<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2">STOP</MudButton>
+<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">STOP</MudButton>
 
 
 @code {
@@ -61,7 +62,7 @@
 
     private int CurrentExerciseIndex { get; set; } = 0;
 
-    private MudInput<string>? Input { get; set; }
+    private MudInput<double>? Input { get; set; }
 
     protected override void OnInitialized()
     {
@@ -94,5 +95,12 @@
 
             NextExercise = Program.Exercises[CurrentExerciseIndex + 1];
         }
+    }
+
+    private void GoToResult()
+    {
+        // ExerciseRecord = new ExerciseRecord(Guid.NewGuid(), DateTime.UtcNow, CurrentExercise.Id,Program.Id,double.Parse(input.Text));
+        // LastExerciseRecord = ExerciseRecord;
+        // NavigationManager.NavigateTo($"/result/{Program.Id}");
     }
 }
