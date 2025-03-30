@@ -21,6 +21,7 @@
     private async Task RegisterExercise()
     {
         await ExerciseService.CreateNewExercise(ExerciseModel);
-        NavigationManager.NavigateTo("/");
+        StateHasChanged();
+        // NavigationManager.NavigateTo("/");
     }
 }

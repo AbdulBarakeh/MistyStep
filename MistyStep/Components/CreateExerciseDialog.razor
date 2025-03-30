@@ -1,0 +1,48 @@
+﻿@using MistyStep.Models
+@using MistyStep.Services
+@using MudBlazor;
+
+<MudDialog>
+    <TitleContent>
+        Create Exercise
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Class="pa-4">
+            <MudForm Model="@ExerciseModel" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField @bind-Value="ExerciseModel.Name" T="string" Label="Exercise Name" Required="true" RequiredError="Exercise name is required!" />
+            </MudForm>
+        </MudPaper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Register</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    bool success;
+    string[] errors = { };
+
+    [Inject] IExerciseService ExerciseService { get; set; } = null!;
+    [Inject] NavigationManager NavigationManager { get; set; } = null!;
+    private Exercise ExerciseModel { get; set; } = new();
+
+    private async Task Submit()
+    {
+        await RegisterExercise();
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task RegisterExercise()
+    {
+        await ExerciseService.CreateNewExercise(ExerciseModel);
+    }
+}
+
+
+
