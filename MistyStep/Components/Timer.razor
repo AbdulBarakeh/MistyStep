@@ -1,7 +1,32 @@
 ﻿
-<h3>Timer</h3>
-<h1>Time remaining: @timeRemaining</h1>
+<div class="circle-container" style="">
 
+    <div class="outer-circle">
+        <div class="timer">
+            <h1>@(timeRemaining??TimeSpan.Zero)</h1>
+        </div>
+        <div class="circle">
+        </div>
+
+    </div>
+</div>
+<script>
+
+
+
+    function setAnimationDuration(duration) {
+
+    var r = document.querySelector(':root');
+    var circle = document.querySelector('.circle');
+    var outerCircle = document.querySelector('.outer-circle');
+
+    var newNode = circle.cloneNode(true);
+    outerCircle.replaceChild(newNode, circle);
+
+    r.style.setProperty('--animation-duration', `${duration}s`);
+    }
+
+</script>
 @code {
 
     [Parameter]
@@ -10,28 +35,36 @@
     [Parameter]
     public EventCallback OnPauseTimerEnd { get; set; }
 
-    private TimeSpan timeRemaining;
+    private TimeSpan? timeRemaining;
 
     private System.Threading.Timer? timer;
 
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
 
-    public void StartTimer(TimeSpan timeDuration, bool isPauseTimer)
+    public async Task StartTimer(int timeDurationInSeconds, bool isPauseTimer)
     {
-        timeRemaining = timeDuration;
+        if (timeRemaining is not null && timeRemaining.Value.TotalMilliseconds > 0)
+        {
+            return;
+        }
+
+        timeRemaining = TimeSpan.FromSeconds(timeDurationInSeconds+1);
         if (!isPauseTimer)
         {
-
             timer = new System.Threading.Timer(TimerCallback, null, 0, 1000);
+            await JSRuntime.InvokeVoidAsync("setAnimationDuration", timeRemaining!.Value.TotalSeconds-1);
             return;
         }
         timer = new System.Threading.Timer(PauseTimerCallback, null, 0, 1000);
+
     }
 
     private async void TimerCallback(object state)
     {
-        if (timeRemaining.TotalSeconds > 0)
+        if (timeRemaining!.Value.TotalSeconds >= 1)
         {
-            timeRemaining = timeRemaining.Subtract(TimeSpan.FromSeconds(1));
+            timeRemaining = timeRemaining!.Value.Subtract(TimeSpan.FromSeconds(1));
             await InvokeAsync(StateHasChanged);
         }
         else
@@ -43,9 +76,9 @@
 
     private async void PauseTimerCallback(object state)
     {
-        if (timeRemaining.TotalSeconds > 0)
+        if (timeRemaining!.Value.TotalSeconds > 0)
         {
-            timeRemaining = timeRemaining.Subtract(TimeSpan.FromSeconds(1));
+            timeRemaining = timeRemaining!.Value.Subtract(TimeSpan.FromSeconds(1));
             await InvokeAsync(StateHasChanged);
         }
         else
@@ -54,5 +87,5 @@
             await OnPauseTimerEnd.InvokeAsync(null);
         }
     }
-    
+
 }

@@ -54,10 +54,10 @@ public static class ExerciseTestList
         new Exercise(Guid.NewGuid(),"Chinups",60,6)
         ],60),
         new ExerciseProgram(Guid.NewGuid(),"Program 3",[
-        new Exercise(Guid.NewGuid(),"Pushups",60,5),
-        new Exercise(Guid.NewGuid(),"Situps",60,4),
-        new Exercise(Guid.NewGuid(),"Pullups",60, 5),
-        new Exercise(Guid.NewGuid(),"Punches",60,3)
+        new Exercise(Guid.NewGuid(),"Pushups",5,5),
+        new Exercise(Guid.NewGuid(),"Situps",5,4),
+        new Exercise(Guid.NewGuid(),"Pullups",5, 5),
+        new Exercise(Guid.NewGuid(),"Punches",5,3)
         ],60),
         ];
 }

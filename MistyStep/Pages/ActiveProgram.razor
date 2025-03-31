@@ -1,47 +1,52 @@
 ﻿@page "/run/program/{Id:guid}";
 @using MistyStep.Models
 @using MistyStep.Services
-@if (Program is not null)
-{
-    <MudPaper Class="pa-5">
-        Current Program:   @Program!.Name
-    </MudPaper>
-}
-@if (CurrentExercise is not null)
-{
-    <MudPaper Class="pa-5">
-        Current Exercise:  @CurrentExercise!.Name
-    </MudPaper>
-}
-@if (LastExerciseRecord is not null)
-{
+<div class="program-container">
+
+    @if (Program is not null)
+    {
+        <MudPaper Class="pa-5">
+            Current Program:   @Program!.Name
+        </MudPaper>
+    }
+    @if (CurrentExercise is not null)
+    {
+        <MudPaper Class="pa-5">
+            Current Exercise:  @CurrentExercise!.Name
+        </MudPaper>
+    }
+    @if (LastExerciseRecord is not null)
+    {
+
+        <MudPaper Class="pa-5">
+            Last Exercise Record:   @LastExerciseRecord!.Sets
+        </MudPaper>
+    }
+
+    @if (NextExercise is not null)
+    {
+
+        <MudPaper Class="pa-5">
+            Next Exercise:  @NextExercise!.Name
+        </MudPaper>
+    }
 
     <MudPaper Class="pa-5">
-        Last Exercise Record:   @LastExerciseRecord!.Sets
+        Number of Repetetions:
+        <MudInput @ref="Input" T="double" InputType="InputType.Number" ></MudInput>
     </MudPaper>
-}
 
-@if (NextExercise is not null)
-{
 
-    <MudPaper Class="pa-5">
-        Next Exercise:  @NextExercise!.Name
-    </MudPaper>
-}
+    <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
 
-<MudPaper Class="pa-5">
-    Number of Repetetions:
-    <MudInput @ref="Input" T="double" InputType="InputType.Number"></MudInput>
-</MudPaper>
+    <div class="buttons-container">
 
-<MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(TimeSpan.FromSeconds(5),false))">Start øvelse timer</MudButton>
+        <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">STOP</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(CurrentExercise!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
+    </div>
 
-<MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
-
-<MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
-
-<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">STOP</MudButton>
-
+</div>
 
 @code {
 
