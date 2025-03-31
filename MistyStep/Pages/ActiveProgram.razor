@@ -33,7 +33,7 @@
 
     <MudPaper Class="pa-5">
         Number of Repetetions:
-        <MudInput @ref="Input" T="double" InputType="InputType.Number" ></MudInput>
+        <MudInput @ref="Input" T="double" InputType="InputType.Number"></MudInput>
     </MudPaper>
 
 
@@ -53,15 +53,18 @@
     [Parameter]
     public Guid Id { get; set; }
 
+    [Inject]
+    public IExerciseService ExerciseService { get; set; }
+
     public ExerciseProgram? Program { get; set; }
 
     public Exercise? CurrentExercise { get; set; }
 
     public Exercise? NextExercise { get; set; }
 
-    public ExerciseRecord? ExerciseRecord { get; set; }
-
     public ExerciseRecord? LastExerciseRecord { get; set; }
+
+    public DateTime StartTime { get; set; }
 
     public Components.Timer? TimerComp { get; set; }
 
@@ -71,9 +74,22 @@
 
     protected override void OnInitialized()
     {
-        Program = ExerciseTestList.ExerciseProgramList.FirstOrDefault(x => x.Id == Id);
-        CurrentExercise = Program.Exercises[CurrentExerciseIndex];
-        NextExercise = Program.Exercises[CurrentExerciseIndex + 1];
+        StartTime = DateTime.UtcNow;
+        Program = ExerciseTestList.ExerciseProgramList
+        .FirstOrDefault(x => x.Id == Id);
+        
+        if (Program is null)
+        {
+            // Program not found
+            return;
+        }
+        
+        CurrentExercise = Program!.Exercises[CurrentExerciseIndex];
+        NextExercise = Program!.Exercises[CurrentExerciseIndex + 1];
+        
+        LastExerciseRecord = ExerciseTestList.ExerciseRecordsList
+        .OrderBy(x => x.RecordSet)
+        .FirstOrDefault(x => x.ExerciseId == CurrentExercise.Id && x.ExerciseProgramId == Id);
     }
 
     private async Task TimerEnd()
@@ -84,17 +100,22 @@
     }
 
 
-    private void GoToNextExercise()
+    private async Task GoToNextExercise()
     {
-        // ExerciseRecord = new ExerciseRecord(Guid.NewGuid(), DateTime.UtcNow, CurrentExercise.Id,Program.Id,double.Parse(input.Text));
-        // LastExerciseRecord = ExerciseRecord;
+        var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, double.Parse(Input!.Text ?? ""));
+        await ExerciseService.CreateNewExerciseRecord(exerciseRecord);
+
         if (CurrentExerciseIndex == Program?.Exercises.Count - 1)
         {
             // Program is done
+            GoToResult();
             return;
         }
+
         CurrentExerciseIndex++;
+
         CurrentExercise = Program.Exercises[CurrentExerciseIndex];
+
         if (CurrentExerciseIndex != Program?.Exercises.Count - 1)
         {
 
