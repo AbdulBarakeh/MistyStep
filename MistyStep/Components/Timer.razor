@@ -1,5 +1,4 @@
-﻿
-<div class="circle-container" style="">
+﻿<div class="circle-container" style="">
 
     <div class="outer-circle">
         <div class="timer">
@@ -11,8 +10,6 @@
     </div>
 </div>
 <script>
-
-
 
     function setAnimationDuration(duration) {
 
@@ -44,7 +41,7 @@
 
     public async Task StartTimer(int timeDurationInSeconds, bool isPauseTimer)
     {
-        if (timeRemaining is not null && timeRemaining.Value.TotalMilliseconds > 0)
+        if (timer != null)
         {
             return;
         }
@@ -70,13 +67,14 @@
         else
         {
             timer.Dispose();
+            timer = null;
             await OnTimerEnd.InvokeAsync(null);
         }
     }
 
     private async void PauseTimerCallback(object state)
     {
-        if (timeRemaining!.Value.TotalSeconds > 0)
+        if (timeRemaining!.Value.TotalSeconds >= 1)
         {
             timeRemaining = timeRemaining!.Value.Subtract(TimeSpan.FromSeconds(1));
             await InvokeAsync(StateHasChanged);
@@ -84,6 +82,7 @@
         else
         {
             timer.Dispose();
+            timer = null;
             await OnPauseTimerEnd.InvokeAsync(null);
         }
     }
