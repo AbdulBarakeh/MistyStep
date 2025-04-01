@@ -32,22 +32,22 @@ public class Exercise
 public class ExerciseProgram
 {
     public Guid Id { get; set; }
-    public string? Name { get; set; }
-    public List<Exercise>? Exercises { get; set; }
+    public string Name { get; set; } = "";
+    public List<Guid> ExerciseIds { get; set; } = [];
     public int? PauseDurationInSeconds { get; set; }
 
-    public ExerciseProgram(Guid Id, string Name, List<Exercise> Exercises, int? PauseDurationInSeconds)
+    public ExerciseProgram(Guid Id, string Name, List<Guid> ExerciseIds, int? PauseDurationInSeconds)
     {
         this.Id = Id;
         this.Name = Name;
-        this.Exercises = Exercises;
+        this.ExerciseIds = ExerciseIds;
         this.PauseDurationInSeconds = PauseDurationInSeconds;
     }
-    public ExerciseProgram( string Name, List<Exercise> Exercises, int? PauseDurationInSeconds)
+    public ExerciseProgram( string Name, List<Guid> ExerciseIds, int? PauseDurationInSeconds)
     {
         this.Id = Guid.NewGuid();
         this.Name = Name;
-        this.Exercises = Exercises;
+        this.ExerciseIds = ExerciseIds;
         this.PauseDurationInSeconds = PauseDurationInSeconds;
     }
 
@@ -57,4 +57,4 @@ public class ExerciseProgram
     }
 }
 
-public record ExerciseRecord(Guid Id, DateTime RecordSet, Guid ExerciseId, Guid ExerciseProgramId, double Sets);
+public record ExerciseRecord(Guid Id, DateTime RecordSet, Guid ExerciseId, Guid ExerciseProgramId, double Reps);
