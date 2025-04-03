@@ -1,0 +1,96 @@
+/* /Components/Timer.razor.rz.scp.css */
+:root[b-0uwg81k7l0] {
+    --animation-duration: 5;
+}
+
+.buttons-container[b-0uwg81k7l0] {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.program-container[b-0uwg81k7l0] {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+
+.timer[b-0uwg81k7l0] {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #FF3D00;
+    text-align: center;
+    position: absolute;
+}
+
+.circle-container[b-0uwg81k7l0] {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+
+.outer-circle[b-0uwg81k7l0] {
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    padding: 10px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.circle[b-0uwg81k7l0] {
+    border-radius: 50%;
+    border-width: 5px;
+    position: relative;
+    transform: rotate(45deg);
+    box-sizing: border-box;
+    height: 75%;
+    width: 75%;
+}
+
+
+
+    .circle[b-0uwg81k7l0]::before {
+        content: "";
+        position: absolute;
+        box-sizing: border-box;
+        inset: -10px;
+        border-radius: 50%;
+        border: 10px solid #FF3D00;
+
+        animation-name: prixClipFix-b-0uwg81k7l0;
+        animation-duration: var(--animation-duration,0s);
+        animation-timing-function: linear;
+        animation-iteration-count: 1;
+        animation-direction: normal;
+        animation-fill-mode: none;
+    }
+
+@keyframes prixClipFix-b-0uwg81k7l0 {
+    0% {
+        clip-path: polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)
+    }
+
+    25% {
+        clip-path: polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)
+    }
+
+    50% {
+        clip-path: polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)
+    }
+
+    75% {
+        clip-path: polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)
+    }
+
+    100% {
+        clip-path: polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)
+    }
+}
+/* /Layout/MainLayout.razor.rz.scp.css */
