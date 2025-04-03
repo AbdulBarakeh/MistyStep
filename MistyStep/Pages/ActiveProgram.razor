@@ -76,36 +76,48 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        StartTime = DateTime.UtcNow;
-        var programResult = await ExerciseService.GetExerciseProgramById(Id);
-
-        if (!programResult.IsSuccess)
+        if (firstRender)
         {
-            // Program not found
-            return;
+
+            StartTime = DateTime.UtcNow;
+            var programResult = await ExerciseService.GetExerciseProgramById(Id);
+
+            if (!programResult.IsSuccess)
+            {
+                // Program not found
+                return;
+            }
+
+            Program = programResult.Data;
+
+            var exercisesResult = await ExerciseService.GetExercisesByIds(Program!.ExerciseIds);
+            if (!exercisesResult.IsSuccess)
+            {
+                // Exercises not found
+                return;
+            }
+
+            ProgramExercises = exercisesResult.Data!.ToArray();
+
         }
 
-        Program = programResult.Data;
-
-        var exercisesResult = await ExerciseService.GetExercisesByIds(Program!.ExerciseIds);
-        if (!exercisesResult.IsSuccess)
+        if (CurrentExerciseIndex == ProgramExercises.Length-1)
         {
-            // Exercises not found
-            return;
+            GoToResult();
         }
-
-        ProgramExercises = exercisesResult.Data!.ToArray();
-
         CurrentExercise = ProgramExercises[CurrentExerciseIndex];
         NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
 
-        var recordResult = await ExerciseService.GetExerciseRecordById(CurrentExercise.Id,Program.Id);
+        var recordResult = await ExerciseService.GetExerciseRecordById(CurrentExercise.Id, Program.Id);
         if (!recordResult.IsSuccess)
         {
             //record not found. Maybe new exercise?
             return;
         }
+        
         LastExerciseRecord = recordResult.Data;
+        
+        StateHasChanged();
     }
 
     private async Task TimerEnd()
@@ -137,6 +149,7 @@
 
             NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
         }
+        StateHasChanged();
     }
 
     private void GoToResult()

@@ -51,6 +51,6 @@ builder.Services.AddIndexedDB(dbStore =>
 });
 
 var host = builder.Build();
-var dbService = host.Services.GetRequiredService<IndexedDbService>();
+var dbService = host.Services.GetRequiredService<IIndexedDbService>();
 await dbService.SeedPredefinedExercisesAsync();
 await host.RunAsync();
