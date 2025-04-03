@@ -2,7 +2,7 @@
   "name": "MistyStep",
   "short_name": "MistyStep",
   "id": "./",
-  "start_url": "./",
+  "start_url": "./MistyStep",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#03173d",
