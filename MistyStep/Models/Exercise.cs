@@ -58,3 +58,19 @@ public class ExerciseProgram
 }
 
 public record ExerciseRecord(Guid Id, DateTime RecordSet, Guid ExerciseId, Guid ExerciseProgramId, double Reps);
+
+public struct Result<T>
+{
+    public bool IsSuccess { get; set; }
+    public T? Data { get; set; }
+    public string? ErrorMessage { get; set; }
+
+    public Result(bool success, T? data, string? errorMessage)
+    {
+        IsSuccess = success;
+        Data = data;
+        ErrorMessage = errorMessage;
+    }
+
+    public static implicit operator Result<T>(T data) => new(true, data, null);
+}

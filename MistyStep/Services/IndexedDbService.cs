@@ -30,7 +30,7 @@ public class IndexedDbService : IIndexedDbService
     {
         return await _dbManager.GetRecords<Exercise>("exercises");
     }
-
+    
     public async Task AddProgramAsync(ExerciseProgram program)
     {
         var storeRecord = new StoreRecord<ExerciseProgram>
@@ -44,6 +44,11 @@ public class IndexedDbService : IIndexedDbService
     public async Task<List<ExerciseProgram>> GetProgramsAsync()
     {
         return await _dbManager.GetRecords<ExerciseProgram>("exercisePrograms");
+    }
+
+    public async Task<ExerciseProgram> GetProgramByIdAsync(Guid id)
+    {
+        return await _dbManager.GetRecordById<Guid, ExerciseProgram>("exercisePrograms", id);
     }
 
     public async Task AddRecordAsync(ExerciseRecord record)
@@ -60,11 +65,13 @@ public class IndexedDbService : IIndexedDbService
     {
         return await _dbManager.GetRecords<ExerciseRecord>("exerciseRecords");
     }
+
+
     public async Task SeedPredefinedExercisesAsync()
     {
         var existingExercises = await GetExercisesAsync();
 
-        if (existingExercises.Count == 0) 
+        if (existingExercises.Count == 0)
         {
             foreach (var exercise in PredefinedExercises)
             {
@@ -75,19 +82,20 @@ public class IndexedDbService : IIndexedDbService
 
     public async Task ExportDataAsync()
     {
+        await Task.Delay(1);
         throw new NotImplementedException();
-        var exercises = await GetExercisesAsync();
-        var programs = await GetProgramsAsync();
-        var records = await GetRecordsAsync();
+        //var exercises = await GetExercisesAsync();
+        //var programs = await GetProgramsAsync();
+        //var records = await GetRecordsAsync();
 
-        var data = new
-        {
-            exercises,
-            programs,
-            records
-        };
+        //var data = new
+        //{
+        //    exercises,
+        //    programs,
+        //    records
+        //};
 
-        string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        //string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
 
         // Implement file save logic (e.g., File System API or download as a blob)
     }

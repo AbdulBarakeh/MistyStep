@@ -4,14 +4,14 @@
 @using System.Collections.ObjectModel
 <style>
     .fabIcon {
-    position: absolute;
-    right: 2rem;
-    bottom: 2rem;
+        position: absolute;
+        right: 2rem;
+        bottom: 2rem;
     }
 
     .scroll-stack {
-    overflow: auto;
-    height: calc(100vh - var(--navbar-height));
+        overflow: auto;
+        height: calc(100vh - var(--navbar-height));
     }
 
 </style>
@@ -41,13 +41,24 @@
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
-    [Inject] IDialogService DialogService {get; set;}
+    [Inject] IDialogService DialogService { get; set; } = null!;
+
+    [Inject] IExerciseService ExerciseService { get; set; } = null!;
 
     public ObservableCollection<Exercise> Exercises { get; set; } = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        ExerciseTestList.ExerciseList.ForEach(exercise => Exercises.Add(exercise));
+        if (firstRender)
+        {
+            var exerciseResult = await ExerciseService.GetExercises();
+            if (!exerciseResult.IsSuccess)
+            {
+                // Handle error
+                return;
+            }
+            exerciseResult.Data!.ForEach(exercise => Exercises.Add(exercise));
+        }
 
     }
 
@@ -57,7 +68,13 @@
         _ = await temp.Result;
 
         Exercises.Clear();
-        ExerciseTestList.ExerciseList.ForEach(exercise => Exercises.Add(exercise));
+        var exerciseResult = await ExerciseService.GetExercises();
+        if (!exerciseResult.IsSuccess)
+        {
+            // Handle error
+            return;
+        }
+        exerciseResult.Data!.ForEach(exercise => Exercises.Add(exercise));
     }
 
 }

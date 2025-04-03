@@ -26,6 +26,16 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
         return false;
     }
 
+    public async Task<Result<ExerciseProgram>> GetExerciseProgramById(Guid programId)
+    {
+        var program = await DbService.GetProgramByIdAsync(programId);
+        if (program is null)
+        {
+            return new Result<ExerciseProgram>(false, null, "program was not found");
+        }
+        return program;
+    }
+
     public async Task<bool> CreateNewExerciseRecord(ExerciseRecord record)
     {
         var temp = record;
@@ -37,18 +47,58 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
         return false;
     }
 
-    public async Task<List<Exercise>> GetExercises()
+    public async Task<Result<List<Exercise>>> GetExercises()
     {
-        return await DbService.GetExercisesAsync();
+        var result = await DbService.GetExercisesAsync();
+        if (result is null || result.Count == 0)
+        {
+            return new Result<List<Exercise>>(false, null, "exercises were not found");
+        }
+        return result;
     }
 
-    public async Task<List<ExerciseProgram>> GetExercisePrograms()
+    public async Task<Result<List<Exercise>>> GetExercisesByIds(List<Guid> ids)
     {
-        return await DbService.GetProgramsAsync();
+        var exercises = await DbService.GetExercisesAsync();
+        var result = exercises
+            .Where(x => ids.Contains(x.Id))
+            .ToList();
+
+        if (result is null || result.Count == 0)
+        {
+            return new Result<List<Exercise>>(false, null, "exercises were not found");
+        }
+
+        return result;
+    }
+
+    public async Task<Result<List<ExerciseProgram>>> GetExercisePrograms()
+    {
+        var exercisePrograms = await DbService.GetProgramsAsync();
+        if (exercisePrograms is null || exercisePrograms.Count == 0)
+        {
+            return new Result<List<ExerciseProgram>>(false, null, "exercise programs were not found");
+        }
+        return exercisePrograms;
     }
 
     public async Task<List<ExerciseRecord>> GetExerciseRecords()
     {
         return await DbService.GetRecordsAsync();
+    }
+
+    public async Task<Result<ExerciseRecord>> GetExerciseRecordById(Guid exerciseId, Guid programId)
+    {
+        var records = await DbService.GetRecordsAsync();
+        var record = records
+            .OrderBy(x => x.RecordSet)
+            .FirstOrDefault(x => x.ExerciseId == exerciseId && x.ExerciseProgramId == programId);
+
+        if (record is null)
+        {
+            return new Result<ExerciseRecord>(false, null, "record was not found");
+        }
+
+        return record;
     }
 }

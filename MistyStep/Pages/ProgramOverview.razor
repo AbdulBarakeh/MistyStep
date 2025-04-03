@@ -42,14 +42,27 @@
     <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToProgramCreation" />
 </div>
 @code {
+    
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
-    [Inject] IDialogService DialogService { get; set; }
+
+    [Inject] IDialogService DialogService { get; set; } = null!;
+    
+    [Inject] IExerciseService ExerciseService { get; set; } = null!;
 
     public ObservableCollection<Models.ExerciseProgram> Programs { get; set; } = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        ExerciseTestList.ExerciseProgramList.ForEach(program => Programs.Add(program));
+        if (firstRender)
+        {
+            var exerciseProgramsResult = await ExerciseService.GetExercisePrograms();
+            if (!exerciseProgramsResult.IsSuccess)
+            {
+                // Handle error
+                return;
+            }
+            exerciseProgramsResult.Data!.ForEach(program => Programs.Add(program));
+        }
 
     }
 
@@ -59,7 +72,13 @@
         _ = await temp.Result;
 
         Programs.Clear();
-        ExerciseTestList.ExerciseProgramList.ForEach(program => Programs.Add(program));
+        var exerciseProgramsResult = await ExerciseService.GetExercisePrograms();
+        if (!exerciseProgramsResult.IsSuccess)
+        {
+            // Handle error
+            return;
+        }
+        exerciseProgramsResult.Data!.ForEach(program => Programs.Add(program));
 
     }
 

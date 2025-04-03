@@ -54,9 +54,11 @@
     public Guid Id { get; set; }
 
     [Inject]
-    public IExerciseService ExerciseService { get; set; }
+    public IExerciseService ExerciseService { get; set; } = null!;
 
     public ExerciseProgram? Program { get; set; }
+
+    public Exercise[] ProgramExercises { get; set; } = [];
 
     public Exercise? CurrentExercise { get; set; }
 
@@ -72,29 +74,43 @@
 
     private MudInput<double>? Input { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         StartTime = DateTime.UtcNow;
-        Program = ExerciseTestList.ExerciseProgramList
-        .FirstOrDefault(x => x.Id == Id);
-        
-        if (Program is null)
+        var programResult = await ExerciseService.GetExerciseProgramById(Id);
+
+        if (!programResult.IsSuccess)
         {
             // Program not found
             return;
         }
-        
-        CurrentExercise = Program!.Exercises[CurrentExerciseIndex];
-        NextExercise = Program!.Exercises[CurrentExerciseIndex + 1];
-        
-        LastExerciseRecord = ExerciseTestList.ExerciseRecordsList
-        .OrderBy(x => x.RecordSet)
-        .FirstOrDefault(x => x.ExerciseId == CurrentExercise.Id && x.ExerciseProgramId == Id);
+
+        Program = programResult.Data;
+
+        var exercisesResult = await ExerciseService.GetExercisesByIds(Program!.ExerciseIds);
+        if (!exercisesResult.IsSuccess)
+        {
+            // Exercises not found
+            return;
+        }
+
+        ProgramExercises = exercisesResult.Data!.ToArray();
+
+        CurrentExercise = ProgramExercises[CurrentExerciseIndex];
+        NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
+
+        var recordResult = await ExerciseService.GetExerciseRecordById(CurrentExercise.Id,Program.Id);
+        if (!recordResult.IsSuccess)
+        {
+            //record not found. Maybe new exercise?
+            return;
+        }
+        LastExerciseRecord = recordResult.Data;
     }
 
     private async Task TimerEnd()
     {
-
+        await Task.CompletedTask;
         // alarm sound
 
     }
@@ -105,7 +121,7 @@
         var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, double.Parse(Input!.Text ?? ""));
         await ExerciseService.CreateNewExerciseRecord(exerciseRecord);
 
-        if (CurrentExerciseIndex == Program?.Exercises.Count - 1)
+        if (CurrentExerciseIndex == Program?.ExerciseIds.Count - 1)
         {
             // Program is done
             GoToResult();
@@ -114,12 +130,12 @@
 
         CurrentExerciseIndex++;
 
-        CurrentExercise = Program.Exercises[CurrentExerciseIndex];
+        CurrentExercise = ProgramExercises[CurrentExerciseIndex];
 
-        if (CurrentExerciseIndex != Program?.Exercises.Count - 1)
+        if (CurrentExerciseIndex != Program?.ExerciseIds.Count - 1)
         {
 
-            NextExercise = Program.Exercises[CurrentExerciseIndex + 1];
+            NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
         }
     }
 
