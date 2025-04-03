@@ -1,4 +1,0 @@
-.scroll-stack {
-    overflow: auto;
-    height: calc(100vh - var(--navbar-height));
-}

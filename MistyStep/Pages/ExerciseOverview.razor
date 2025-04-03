@@ -1,0 +1,82 @@
+﻿@using MistyStep.Components
+@using MistyStep.Models
+@using MistyStep.Services
+@using System.Collections.ObjectModel
+<style>
+    .fabIcon {
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    }
+
+    .scroll-stack {
+    overflow: auto;
+    height: calc(100vh - var(--navbar-height));
+    }
+
+</style>
+<div>
+
+    <div class="scroll-stack">
+        <MudStack>
+            @if (Exercises is { Count: > 0 })
+            {
+                @foreach (var exercise in Exercises)
+                {
+                    <MudPaper Class="pa-5">
+                        @exercise.Name
+                    </MudPaper>
+                }
+            }
+            else
+            {
+                <MudSkeleton />
+                <MudSkeleton Animation="Animation.False" />
+                <MudSkeleton Animation="Animation.Wave" />
+            }
+        </MudStack>
+    </div>
+    <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToExerciseCreation" />
+</div>
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    [Inject] IDialogService DialogService { get; set; } = null!;
+
+    [Inject] IExerciseService ExerciseService { get; set; } = null!;
+
+    public ObservableCollection<Exercise> Exercises { get; set; } = [];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var exerciseResult = await ExerciseService.GetExercises();
+            if (!exerciseResult.IsSuccess)
+            {
+                // Handle error
+                return;
+            }
+            exerciseResult.Data!.ForEach(exercise => Exercises.Add(exercise));
+            StateHasChanged();
+        }
+
+    }
+
+    private async Task GoToExerciseCreation()
+    {
+        var temp = await DialogService.ShowAsync<CreateExerciseDialog>();
+        _ = await temp.Result;
+
+        Exercises.Clear();
+        var exerciseResult = await ExerciseService.GetExercises();
+        if (!exerciseResult.IsSuccess)
+        {
+            // Handle error
+            return;
+        }
+        exerciseResult.Data!.ForEach(exercise => Exercises.Add(exercise));
+        StateHasChanged();
+    }
+
+}

@@ -1,0 +1,91 @@
+﻿@using MistyStep.Components
+@using MistyStep.Services
+@using System.Collections.ObjectModel
+<style>
+    .fabIcon {
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    }
+
+    .scroll-stack {
+    overflow: auto;
+    height: calc(100vh - var(--navbar-height));
+    }
+
+</style>
+<div>
+
+    <div class="scroll-stack">
+        <MudStack>
+            @if (Programs is { Count: > 0 })
+            {
+                @foreach (var program in Programs)
+                {
+                    <MudPaper Class="pa-5">
+                        <div>
+                            @program.Name
+                            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => RunProgram(program.Id))">Kør Program</MudButton>
+                        </div>
+                    </MudPaper>
+                }
+            }
+            else
+            {
+                <MudSkeleton />
+                <MudSkeleton Animation="Animation.False" />
+                <MudSkeleton Animation="Animation.Wave" />
+            }
+        </MudStack>
+    </div>
+
+    <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToProgramCreation" />
+</div>
+@code {
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    [Inject] IDialogService DialogService { get; set; } = null!;
+
+    [Inject] IExerciseService ExerciseService { get; set; } = null!;
+
+    public ObservableCollection<Models.ExerciseProgram> Programs { get; set; } = [];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var exerciseProgramsResult = await ExerciseService.GetExercisePrograms();
+            if (!exerciseProgramsResult.IsSuccess)
+            {
+                // Handle error
+                return;
+            }
+            exerciseProgramsResult.Data!.ForEach(program => Programs.Add(program));
+            StateHasChanged();
+        }
+
+    }
+
+    private async Task GoToProgramCreation()
+    {
+        var temp = await DialogService.ShowAsync<CreateExerciseProgramDialog>();
+        _ = await temp.Result;
+
+        Programs.Clear();
+        var exerciseProgramsResult = await ExerciseService.GetExercisePrograms();
+        if (!exerciseProgramsResult.IsSuccess)
+        {
+            // Handle error
+            return;
+        }
+        exerciseProgramsResult.Data!.ForEach(program => Programs.Add(program));
+        StateHasChanged();
+
+    }
+
+    private void RunProgram(Guid id)
+    {
+        NavigationManager.NavigateTo($"/run/program/{id}");
+    }
+}

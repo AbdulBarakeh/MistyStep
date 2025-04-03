@@ -1,0 +1,69 @@
+﻿
+@using MistyStep.Models
+@using MistyStep.Services
+<MudDialog>
+    <TitleContent>
+        Create Exercise
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Class="pa-4">
+            <MudForm Model="@ExerciseProgram" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField @bind-Value="ExerciseProgram.Name" T="string" Label="Program Name" Required="true" RequiredError="Program name is required!" />
+                <MudSelect T="Exercise" Label="Exercises" MultiSelection="true" SelectedValuesChanged="@(e => {ExerciseProgram.ExerciseIds = e.Select(x => x.Id).ToList();})">
+                    @foreach (var exercise in AvailableExercises)
+                    {
+                        <MudSelectItem T="Exercise" Value="@exercise">@exercise.Name - @exercise.PointPerRep</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudNumericField @bind-Value="ExerciseProgram.PauseDurationInSeconds" T="int?" Label="pause duration" />
+
+            </MudForm>
+        </MudPaper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Register</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    bool success;
+    string[] errors = { };
+
+    [Inject] IExerciseService ExerciseService { get; set; } = null!;
+    [Inject] NavigationManager NavigationManager { get; set; } = null!;
+    private ExerciseProgram ExerciseProgram { get; set; } = new();
+    private List<Exercise> AvailableExercises = new List<Exercise>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var exercisesResult = await ExerciseService.GetExercises();
+            if (!exercisesResult.IsSuccess)
+            {
+                // Handle error
+                return;
+            }
+            AvailableExercises = exercisesResult.Data!;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await RegisterExerciseProgram();
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task RegisterExerciseProgram()
+    {
+        await ExerciseService.CreateNewExerciseProgram(ExerciseProgram);
+    }
+}
+
+

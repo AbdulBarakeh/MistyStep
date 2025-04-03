@@ -1,7 +1,21 @@
 ﻿@page "/"
+@using MistyStep.Components
 
-<PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudTabs Elevation="4" Rounded="true" AlwaysShowScrollButtons="true" Color="@Color.Info" Position="Position.Bottom">
+    <MudTabPanel Text="Øvelser">
+        <ChildContent>
+            <ExerciseOverview></ExerciseOverview>
+        </ChildContent>
+    </MudTabPanel>
+    <MudTabPanel Text="Program" >
+        <ChildContent>
+            <ProgramOverview></ProgramOverview>
+        </ChildContent>
+    </MudTabPanel>
+</MudTabs>
 
-Welcome to your new app.
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+}
+

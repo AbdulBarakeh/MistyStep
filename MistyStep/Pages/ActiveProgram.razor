@@ -1,0 +1,161 @@
+﻿@page "/run/program/{Id:guid}";
+@using MistyStep.Models
+@using MistyStep.Services
+<div class="program-container">
+
+    @if (Program is not null)
+    {
+        <MudPaper Class="pa-5">
+            Current Program:   @Program!.Name
+        </MudPaper>
+    }
+    @if (CurrentExercise is not null)
+    {
+        <MudPaper Class="pa-5">
+            Current Exercise:  @CurrentExercise!.Name
+        </MudPaper>
+    }
+    @if (LastExerciseRecord is not null)
+    {
+
+        <MudPaper Class="pa-5">
+            Last Exercise Record:   @LastExerciseRecord!.Reps
+        </MudPaper>
+    }
+
+    @if (NextExercise is not null)
+    {
+
+        <MudPaper Class="pa-5">
+            Next Exercise:  @NextExercise!.Name
+        </MudPaper>
+    }
+
+    <MudPaper Class="pa-5">
+        Number of Repetetions:
+        <MudInput @ref="Input" T="double" InputType="InputType.Number"></MudInput>
+    </MudPaper>
+
+
+    <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
+
+    <div class="buttons-container">
+
+        <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">STOP</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(CurrentExercise!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    [Inject]
+    public IExerciseService ExerciseService { get; set; } = null!;
+
+    public ExerciseProgram? Program { get; set; }
+
+    public Exercise[] ProgramExercises { get; set; } = [];
+
+    public Exercise? CurrentExercise { get; set; }
+
+    public Exercise? NextExercise { get; set; }
+
+    public ExerciseRecord? LastExerciseRecord { get; set; }
+
+    public DateTime StartTime { get; set; }
+
+    public Components.Timer? TimerComp { get; set; }
+
+    private int CurrentExerciseIndex { get; set; } = 0;
+
+    private MudInput<double>? Input { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+            StartTime = DateTime.UtcNow;
+            var programResult = await ExerciseService.GetExerciseProgramById(Id);
+
+            if (!programResult.IsSuccess)
+            {
+                // Program not found
+                return;
+            }
+
+            Program = programResult.Data;
+
+            var exercisesResult = await ExerciseService.GetExercisesByIds(Program!.ExerciseIds);
+            if (!exercisesResult.IsSuccess)
+            {
+                // Exercises not found
+                return;
+            }
+
+            ProgramExercises = exercisesResult.Data!.ToArray();
+
+        }
+
+        if (CurrentExerciseIndex == ProgramExercises.Length-1)
+        {
+            GoToResult();
+        }
+        CurrentExercise = ProgramExercises[CurrentExerciseIndex];
+        NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
+
+        var recordResult = await ExerciseService.GetExerciseRecordById(CurrentExercise.Id, Program.Id);
+        if (!recordResult.IsSuccess)
+        {
+            //record not found. Maybe new exercise?
+            return;
+        }
+        
+        LastExerciseRecord = recordResult.Data;
+        
+        StateHasChanged();
+    }
+
+    private async Task TimerEnd()
+    {
+        await Task.CompletedTask;
+        // alarm sound
+
+    }
+
+
+    private async Task GoToNextExercise()
+    {
+        var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, double.Parse(Input!.Text ?? ""));
+        await ExerciseService.CreateNewExerciseRecord(exerciseRecord);
+
+        if (CurrentExerciseIndex == Program?.ExerciseIds.Count - 1)
+        {
+            // Program is done
+            GoToResult();
+            return;
+        }
+
+        CurrentExerciseIndex++;
+
+        CurrentExercise = ProgramExercises[CurrentExerciseIndex];
+
+        if (CurrentExerciseIndex != Program?.ExerciseIds.Count - 1)
+        {
+
+            NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
+        }
+        StateHasChanged();
+    }
+
+    private void GoToResult()
+    {
+        // ExerciseRecord = new ExerciseRecord(Guid.NewGuid(), DateTime.UtcNow, CurrentExercise.Id,Program.Id,double.Parse(input.Text));
+        // LastExerciseRecord = ExerciseRecord;
+        // NavigationManager.NavigateTo($"/result/{Program.Id}");
+    }
+}
