@@ -101,4 +101,19 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
 
         return record;
     }
+    
+    public async Task<Result<List<ExerciseRecord>>> GetExerciseRecordsByProgramId(Guid programId)
+    {
+        var records = await DbService.GetRecordsAsync();
+        var record = records
+            .OrderBy(x => x.RecordSet)
+            .Where(x => x.ExerciseProgramId == programId).ToList();
+
+        if (record is null)
+        {
+            return new Result<List<ExerciseRecord>>(false, null, "record was not found");
+        }
+
+        return record;
+    }
 }

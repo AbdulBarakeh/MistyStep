@@ -1,0 +1,76 @@
+﻿@page "/result/{Id:guid}"
+@using MistyStep.Models
+@using MistyStep.Services
+
+<h1>Resultat</h1>
+
+<h1>@TotalScore.ToString()</h1>
+<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    [SupplyParameterFromQuery(Name = "time")]
+    public DateTime? Time { get; set; }
+
+    [Inject]
+    public IExerciseService ExerciseService { get; set; } = null!;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = null!;
+
+    public ExerciseProgram? Program { get; set; }
+
+    private double TotalScore { get; set; } = 0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Time is null)
+        { // Error
+            return;
+        }
+
+        if (firstRender)
+        {
+
+            var exerciseRecords = await ExerciseService.GetExerciseRecordsByProgramId(Id);
+            if (!exerciseRecords.IsSuccess)
+            {
+                // Handle error
+                return;
+            }
+
+            var currentExerciseRecords = exerciseRecords.Data!.Where(x => x.RecordSet.ToString() == Time.Value.ToString()).ToList();
+            if (currentExerciseRecords.Count == 0)
+            {
+                // Handle error
+                return;
+            }
+
+            var exercises = await ExerciseService.GetExercisesByIds(currentExerciseRecords.Select(x => x.ExerciseId).ToList());
+            if (!exercises.IsSuccess)
+            {
+                // Handle error
+                return;
+            }
+
+            var exerciseRecordsWithExercises = currentExerciseRecords
+                .Select(record => new { Record = record, Exercise = exercises.Data!.FirstOrDefault(e => e.Id == record.ExerciseId) })
+                .ToList();
+
+            foreach (var x in exerciseRecordsWithExercises)
+            {
+                TotalScore += (x.Record.Reps * x.Exercise!.PointPerRep);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private void GoToOverview()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

@@ -3,19 +3,19 @@ namespace MistyStep.Models;
 public class Exercise
 {
     public Guid Id { get; set; }
-    public string? Name { get; set; }
-    public int? ExerciseDurationInSeconds { get; set; }
-    public double? PointPerRep { get; set; }
+    public string Name { get; set; } = "";
+    public int ExerciseDurationInSeconds { get; set; }
+    public double PointPerRep { get; set; }
 
-    public Exercise(string Name, int? ExerciseDurationInSeconds, double PointPerRep)
+    public Exercise(string Name, int ExerciseDurationInSeconds, double PointPerRep)
     {
-        this.Id = Guid.NewGuid();
+        Id = Guid.NewGuid();
         this.Name = Name;
         this.ExerciseDurationInSeconds = ExerciseDurationInSeconds;
         this.PointPerRep = PointPerRep;
     }
 
-    public Exercise(Guid Id, string Name, int? ExerciseDurationInSeconds, double PointPerRep)
+    public Exercise(Guid Id, string Name, int ExerciseDurationInSeconds, double PointPerRep)
     {
         this.Id = Id;
         this.Name = Name;
@@ -25,7 +25,7 @@ public class Exercise
 
     public Exercise()
     {
-        this.Id = Guid.NewGuid();
+        Id = Guid.NewGuid();
     }
 }
 

@@ -2,7 +2,7 @@
 
     <div class="outer-circle">
         <div class="timer">
-            <h1>@(timeRemaining??TimeSpan.Zero)</h1>
+            <h1>@(timeRemaining ?? TimeSpan.Zero)</h1>
         </div>
         <div class="circle">
         </div>
@@ -13,14 +13,20 @@
 
     function setAnimationDuration(duration) {
 
-    var r = document.querySelector(':root');
-    var circle = document.querySelector('.circle');
-    var outerCircle = document.querySelector('.outer-circle');
+        var r = document.querySelector(':root');
+        var circle = document.querySelector('.circle');
+        var outerCircle = document.querySelector('.outer-circle');
 
-    var newNode = circle.cloneNode(true);
-    outerCircle.replaceChild(newNode, circle);
+        var newNode = circle.cloneNode(true);
+        outerCircle.replaceChild(newNode, circle);
 
-    r.style.setProperty('--animation-duration', `${duration}s`);
+        r.style.setProperty('--animation-duration', `${duration}s`);
+    }
+    
+    function resetTimer() {
+
+        var r = document.querySelector(':root');
+        r.style.setProperty('--animation-duration', null);
     }
 
 </script>
@@ -46,11 +52,11 @@
             return;
         }
 
-        timeRemaining = TimeSpan.FromSeconds(timeDurationInSeconds+1);
+        timeRemaining = TimeSpan.FromSeconds(timeDurationInSeconds + 1);
         if (!isPauseTimer)
         {
             timer = new System.Threading.Timer(TimerCallback, null, 0, 1000);
-            await JSRuntime.InvokeVoidAsync("setAnimationDuration", timeRemaining!.Value.TotalSeconds-1);
+            await JSRuntime.InvokeVoidAsync("setAnimationDuration", timeRemaining!.Value.TotalSeconds - 1);
             return;
         }
         timer = new System.Threading.Timer(PauseTimerCallback, null, 0, 1000);
@@ -87,4 +93,12 @@
         }
     }
 
+    public async Task DisposeTimers()
+    {
+        await JSRuntime.InvokeVoidAsync("resetTimer");
+
+        timer?.Dispose();
+        timer = null;
+        timeRemaining = null;
+    }
 }

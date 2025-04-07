@@ -15,13 +15,6 @@
             Current Exercise:  @CurrentExercise!.Name
         </MudPaper>
     }
-    @if (LastExerciseRecord is not null)
-    {
-
-        <MudPaper Class="pa-5">
-            Last Exercise Record:   @LastExerciseRecord!.Reps
-        </MudPaper>
-    }
 
     @if (NextExercise is not null)
     {
@@ -41,8 +34,9 @@
 
     <div class="buttons-container">
 
-        <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">STOP</MudButton>
-        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(CurrentExercise!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
+        <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">Go To Result</MudButton>
+        <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(CurrentExercise!.ExerciseDurationInSeconds,false))">Start øvelse timer</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
     </div>
 
@@ -55,6 +49,9 @@
 
     [Inject]
     public IExerciseService ExerciseService { get; set; } = null!;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = null!;
 
     public ExerciseProgram? Program { get; set; }
 
@@ -103,7 +100,7 @@
 
         if (CurrentExerciseIndex == ProgramExercises.Length-1)
         {
-            GoToResult();
+            await GoToResult();
         }
         CurrentExercise = ProgramExercises[CurrentExerciseIndex];
         NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
@@ -114,9 +111,9 @@
             //record not found. Maybe new exercise?
             return;
         }
-        
+
         LastExerciseRecord = recordResult.Data;
-        
+
         StateHasChanged();
     }
 
@@ -130,13 +127,14 @@
 
     private async Task GoToNextExercise()
     {
+        await DisposeTimers();
         var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, double.Parse(Input!.Text ?? ""));
         await ExerciseService.CreateNewExerciseRecord(exerciseRecord);
 
         if (CurrentExerciseIndex == Program?.ExerciseIds.Count - 1)
         {
             // Program is done
-            GoToResult();
+            await GoToResult();
             return;
         }
 
@@ -152,10 +150,19 @@
         StateHasChanged();
     }
 
-    private void GoToResult()
+    private async Task GoToResult()
     {
-        // ExerciseRecord = new ExerciseRecord(Guid.NewGuid(), DateTime.UtcNow, CurrentExercise.Id,Program.Id,double.Parse(input.Text));
-        // LastExerciseRecord = ExerciseRecord;
-        // NavigationManager.NavigateTo($"/result/{Program.Id}");
+        await DisposeTimers();
+        NavigationManager.NavigateTo($"result/{Program!.Id}?time={StartTime}");
+    }
+
+    private async Task GoToOverview()
+    {
+        await DisposeTimers();
+        NavigationManager.NavigateTo("/");
+    }
+    private async Task DisposeTimers()
+    {
+        await TimerComp.DisposeTimers();
     }
 }
