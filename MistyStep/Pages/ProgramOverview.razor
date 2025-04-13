@@ -18,25 +18,26 @@
 
     <div class="scroll-stack">
         <MudStack>
-            @if (Programs is { Count: > 0 })
-            {
-                @foreach (var program in Programs)
+
+
+                @if (Programs is { Count: > 0 })
                 {
-                    <MudPaper Class="pa-5">
-                        <div>
-                            @program.Name
-                            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => RunProgram(program.Id))">Kør Program</MudButton>
-                            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => GoToRecords(program.Id))">Se Program rekorder</MudButton>
-                        </div>
-                    </MudPaper>
+                    @foreach (var program in Programs)
+                    {
+                        <MudPaper Class="pa-5">
+                            <div>
+                                @program.Name
+                                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => RunProgram(program.Id))">Kør Program</MudButton>
+                                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => GoToRecords(program.Id))">Se Program rekorder</MudButton>
+                            </div>
+                        </MudPaper>
+                    }
                 }
-            }
-            else
-            {
-                <MudSkeleton />
-                <MudSkeleton Animation="Animation.False" />
-                <MudSkeleton Animation="Animation.Wave" />
-            }
+                else
+                {
+                    <h1>No programs available</h1>
+                }
+           
         </MudStack>
     </div>
 
@@ -52,6 +53,8 @@
 
     public ObservableCollection<Models.ExerciseProgram> Programs { get; set; } = [];
 
+    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -63,6 +66,7 @@
                 return;
             }
             exerciseProgramsResult.Data!.ForEach(program => Programs.Add(program));
+            
             StateHasChanged();
         }
 
@@ -89,7 +93,7 @@
     {
         NavigationManager.NavigateTo($"run/program/{id}");
     }
-    
+
     private void GoToRecords(Guid id)
     {
         NavigationManager.NavigateTo($"record/program/{id}");

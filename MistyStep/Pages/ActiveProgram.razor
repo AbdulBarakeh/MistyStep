@@ -3,42 +3,52 @@
 @using MistyStep.Services
 <div class="program-container">
 
-    @if (Program is not null)
+    @if (Initialized)
     {
+        @if (Program is not null)
+        {
+            <MudPaper Class="pa-5">
+                Current Program:   @Program!.Name
+            </MudPaper>
+        }
+
+        @if (CurrentExercise is not null)
+        {
+            <MudPaper Class="pa-5">
+                Current Exercise:  @CurrentExercise!.Name
+            </MudPaper>
+        }
+
+        @if (NextExercise is not null)
+        {
+
+            <MudPaper Class="pa-5">
+                Next Exercise:  @NextExercise!.Name
+            </MudPaper>
+        }
+
         <MudPaper Class="pa-5">
-            Current Program:   @Program!.Name
+            Number of Repetitions:
+            <MudInput @ref="Input" T="double" @bind-Value="@InputValue" InputType="InputType.Number"></MudInput>
         </MudPaper>
+
+        @if (Program!.ExerciseDurationInSeconds is not null)
+        {
+            <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
+        }
+
+        <div class="buttons-container">
+
+            <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">Go To Result</MudButton>
+            <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" Disabled="@(Program!.ExerciseDurationInSeconds is null)" OnClick="@(() => TimerComp.StartTimer(Program!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
+        </div>
     }
-    @if (CurrentExercise is not null)
+    else
     {
-        <MudPaper Class="pa-5">
-            Current Exercise:  @CurrentExercise!.Name
-        </MudPaper>
+        <MudSkeleton></MudSkeleton>
     }
-
-    @if (NextExercise is not null)
-    {
-
-        <MudPaper Class="pa-5">
-            Next Exercise:  @NextExercise!.Name
-        </MudPaper>
-    }
-
-    <MudPaper Class="pa-5">
-        Number of Repetitions:
-        <MudInput @ref="Input" T="double" @bind-Value="@InputValue" InputType="InputType.Number"></MudInput>
-    </MudPaper>
-
-
-    <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
-
-    <div class="buttons-container">
-
-        <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">Go To Result</MudButton>
-        <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
-        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(Program!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
-    </div>
 
 </div>
 
@@ -73,50 +83,68 @@
 
     private double InputValue { get; set; } = 0;
 
+    private bool Initialized { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+
         if (firstRender)
         {
 
-            StartTime = DateTime.UtcNow;
-            var programResult = await ExerciseService.GetExerciseProgramById(Id);
-
-            if (!programResult.IsSuccess)
-            {
-                // Program not found
-                return;
-            }
-
-            Program = programResult.Data;
-
-            var exercisesResult = await ExerciseService.GetExercisesByIds(Program!.ExerciseIds);
-            if (!exercisesResult.IsSuccess)
-            {
-                // Exercises not found
-                return;
-            }
-
-            ProgramExercises = exercisesResult.Data!.ToArray();
-
+            await InitialDataLoad();
+            StateHasChanged();
         }
 
-        if (CurrentExerciseIndex == ProgramExercises.Length-1)
-        {
-            await GoToResult();
-        }
-        CurrentExercise = ProgramExercises[CurrentExerciseIndex];
-        NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
+    }
 
-        var recordResult = await ExerciseService.GetExerciseRecordById(CurrentExercise.Id, Program.Id);
-        if (!recordResult.IsSuccess)
+
+    private async Task InitialDataLoad()
+    {
+        StartTime = DateTime.UtcNow;
+        var programResult = await ExerciseService.GetExerciseProgramById(Id);
+
+        if (!programResult.IsSuccess)
         {
-            //record not found. Maybe new exercise?
+            // Program not found
             return;
         }
 
-        LastExerciseRecord = recordResult.Data;
+        Program = programResult.Data;
 
-        StateHasChanged();
+        var exercisesResult = await ExerciseService.GetExercisesByIds(Program!.ExerciseIds);
+        if (!exercisesResult.IsSuccess)
+        {
+            // Exercises not found
+            return;
+        }
+
+        ProgramExercises = exercisesResult.Data!.ToArray();
+        Initialized = true;
+        await UpdateExerciseCounter();
+    }
+
+    private async Task UpdateExerciseCounter()
+    {
+        CurrentExercise = ProgramExercises[CurrentExerciseIndex];
+
+        if (CurrentExerciseIndex < ProgramExercises.Length - 1)
+        {
+            NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
+        }
+        else
+        {
+            NextExercise = null;
+        }
+
+        var recordResult = await ExerciseService.GetExerciseRecordById(CurrentExercise.Id, Program!.Id);
+        if (recordResult.IsSuccess)
+        {
+            LastExerciseRecord = recordResult.Data;
+        }
+        else
+        {
+            LastExerciseRecord = null;
+        }
     }
 
     private async Task TimerEnd()
@@ -133,7 +161,7 @@
         var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, InputValue);
         await ExerciseService.CreateNewExerciseRecord(exerciseRecord);
 
-        if (CurrentExerciseIndex == Program?.ExerciseIds.Count - 1)
+        if (CurrentExerciseIndex == ProgramExercises.Length - 1)
         {
             // Program is done
             await GoToResult();
@@ -142,14 +170,7 @@
 
         CurrentExerciseIndex++;
 
-        CurrentExercise = ProgramExercises[CurrentExerciseIndex];
-
-        if (CurrentExerciseIndex != Program?.ExerciseIds.Count - 1)
-        {
-
-            NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
-        }
-
+        await UpdateExerciseCounter();
         InputValue = 0;
 
         StateHasChanged();
@@ -168,6 +189,9 @@
     }
     private async Task DisposeTimers()
     {
-        await TimerComp.DisposeTimers();
+        if (TimerComp is not null)
+        {
+            await TimerComp.DisposeTimers();
+        }
     }
 }
