@@ -62,7 +62,7 @@
 
             foreach (var x in exerciseRecordsWithExercises)
             {
-                TotalScore += (x.Record.Reps * x.Exercise!.PointPerRep);
+                TotalScore += (x.Record.Reps * x.Exercise!.PointsPerRep);
             }
 
             StateHasChanged();
@@ -71,6 +71,6 @@
 
     private void GoToOverview()
     {
-        NavigationManager.NavigateTo("/");
+        NavigationManager.NavigateTo("");
     }
 }
