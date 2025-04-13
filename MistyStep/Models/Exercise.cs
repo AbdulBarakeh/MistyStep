@@ -4,23 +4,20 @@ public class Exercise
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = "";
-    public int ExerciseDurationInSeconds { get; set; }
-    public double PointPerRep { get; set; }
+    public double PointsPerRep { get; set; }
 
-    public Exercise(string Name, int ExerciseDurationInSeconds, double PointPerRep)
+    public Exercise(string Name, double PointPerRep)
     {
         Id = Guid.NewGuid();
         this.Name = Name;
-        this.ExerciseDurationInSeconds = ExerciseDurationInSeconds;
-        this.PointPerRep = PointPerRep;
+        this.PointsPerRep = PointPerRep;
     }
 
-    public Exercise(Guid Id, string Name, int ExerciseDurationInSeconds, double PointPerRep)
+    public Exercise(Guid Id, string Name, double PointPerRep)
     {
         this.Id = Id;
         this.Name = Name;
-        this.ExerciseDurationInSeconds = ExerciseDurationInSeconds;
-        this.PointPerRep = PointPerRep;
+        this.PointsPerRep = PointPerRep;
     }
 
     public Exercise()
@@ -32,22 +29,30 @@ public class Exercise
 public class ExerciseProgram
 {
     public Guid Id { get; set; }
+    
     public string Name { get; set; } = "";
+    
     public List<Guid> ExerciseIds { get; set; } = [];
+    
+    public int? ExerciseDurationInSeconds { get; set; }
+
     public int? PauseDurationInSeconds { get; set; }
 
-    public ExerciseProgram(Guid Id, string Name, List<Guid> ExerciseIds, int? PauseDurationInSeconds)
+    public ExerciseProgram(Guid Id, string Name, List<Guid> ExerciseIds, int? ExerciseDurationInSeconds, int? PauseDurationInSeconds)
     {
         this.Id = Id;
         this.Name = Name;
         this.ExerciseIds = ExerciseIds;
+        this.ExerciseDurationInSeconds = ExerciseDurationInSeconds;
         this.PauseDurationInSeconds = PauseDurationInSeconds;
     }
-    public ExerciseProgram( string Name, List<Guid> ExerciseIds, int? PauseDurationInSeconds)
+    public ExerciseProgram(string Name, List<Guid> ExerciseIds, int? ExerciseDurationInSeconds, int? PauseDurationInSeconds)
     {
         this.Id = Guid.NewGuid();
         this.Name = Name;
         this.ExerciseIds = ExerciseIds;
+        this.ExerciseDurationInSeconds = ExerciseDurationInSeconds;
+
         this.PauseDurationInSeconds = PauseDurationInSeconds;
     }
 

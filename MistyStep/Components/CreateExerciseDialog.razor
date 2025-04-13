@@ -2,16 +2,16 @@
 @using MistyStep.Services
 @using MudBlazor;
 
-<MudDialog>
+<MudDialog Style="height:80%;">
     <TitleContent>
         Create Exercise
     </TitleContent>
     <DialogContent>
-        <MudPaper Class="pa-4">
-            <MudForm Model="@ExerciseModel" @bind-IsValid="@success" @bind-Errors="@errors">
-                <MudTextField @bind-Value="ExerciseModel.Name" T="string" Label="Exercise Name" Required="true" RequiredError="Exercise name is required!" />
-            </MudForm>
-        </MudPaper>
+        <MudForm Model="@ExerciseModel" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudTextField @bind-Value="ExerciseModel.Name" T="string" Label="Exercise Name" Required="true" RequiredError="Exercise name is required!" />
+            <MudNumericField @bind-Value="ExerciseModel.PointsPerRep" T="double" Label="Points per rep" />
+
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>

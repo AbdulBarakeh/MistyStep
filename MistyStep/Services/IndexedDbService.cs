@@ -102,11 +102,11 @@ public class IndexedDbService : IIndexedDbService
 
     private static readonly List<Exercise> PredefinedExercises =
     [
-        new Exercise(Guid.Parse("9D8CE2F5-1A3A-4504-A5F7-CDC8C6AD2954"),"Pushups",60,5),
-        new Exercise(Guid.Parse("EA72DE54-A3C7-45B1-A87F-7B7522E95BEF"),"Situps",60,4),
-        new Exercise(Guid.Parse("2820DE0C-0A79-4E43-9EE9-4B0F31915767"),"Pullups",60, 5),
-        new Exercise(Guid.Parse("E5C2668C-0C79-418B-8DA9-F0D965B797CB"),"Chinups",60,6),
-        new Exercise(Guid.Parse("DF91F357-8BBB-4195-A42F-7032A58C5A18"),"Lunges",60,2),
-        new Exercise(Guid.Parse("CD4B4583-4FAE-4C42-AD10-3D0FAF92052C"),"Punches",60,3)
+        new Exercise(Guid.Parse("9D8CE2F5-1A3A-4504-A5F7-CDC8C6AD2954"),"Pushups",5),
+        new Exercise(Guid.Parse("EA72DE54-A3C7-45B1-A87F-7B7522E95BEF"),"Situps",4),
+        new Exercise(Guid.Parse("2820DE0C-0A79-4E43-9EE9-4B0F31915767"),"Pullups", 5),
+        new Exercise(Guid.Parse("E5C2668C-0C79-418B-8DA9-F0D965B797CB"),"Chinups",6),
+        new Exercise(Guid.Parse("DF91F357-8BBB-4195-A42F-7032A58C5A18"),"Lunges",2),
+        new Exercise(Guid.Parse("CD4B4583-4FAE-4C42-AD10-3D0FAF92052C"),"Punches",3)
     ];
 }

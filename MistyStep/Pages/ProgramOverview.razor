@@ -26,6 +26,7 @@
                         <div>
                             @program.Name
                             <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => RunProgram(program.Id))">Kør Program</MudButton>
+                            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => GoToRecords(program.Id))">Se Program rekorder</MudButton>
                         </div>
                     </MudPaper>
                 }
@@ -87,5 +88,10 @@
     private void RunProgram(Guid id)
     {
         NavigationManager.NavigateTo($"run/program/{id}");
+    }
+    
+    private void GoToRecords(Guid id)
+    {
+        NavigationManager.NavigateTo($"record/program/{id}");
     }
 }

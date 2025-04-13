@@ -25,8 +25,8 @@
     }
 
     <MudPaper Class="pa-5">
-        Number of Repetetions:
-        <MudInput @ref="Input" T="double" InputType="InputType.Number"></MudInput>
+        Number of Repetitions:
+        <MudInput @ref="Input" T="double" @bind-Value="@InputValue" InputType="InputType.Number"></MudInput>
     </MudPaper>
 
 
@@ -36,7 +36,7 @@
 
         <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">Go To Result</MudButton>
         <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
-        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(CurrentExercise!.ExerciseDurationInSeconds,false))">Start øvelse timer</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => TimerComp.StartTimer(Program!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
     </div>
 
@@ -70,6 +70,8 @@
     private int CurrentExerciseIndex { get; set; } = 0;
 
     private MudInput<double>? Input { get; set; }
+
+    private double InputValue { get; set; } = 0;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -128,7 +130,7 @@
     private async Task GoToNextExercise()
     {
         await DisposeTimers();
-        var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, double.Parse(Input!.Text ?? ""));
+        var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, InputValue);
         await ExerciseService.CreateNewExerciseRecord(exerciseRecord);
 
         if (CurrentExerciseIndex == Program?.ExerciseIds.Count - 1)
@@ -147,6 +149,9 @@
 
             NextExercise = ProgramExercises[CurrentExerciseIndex + 1];
         }
+
+        InputValue = 0;
+
         StateHasChanged();
     }
 
@@ -159,7 +164,7 @@
     private async Task GoToOverview()
     {
         await DisposeTimers();
-        NavigationManager.NavigateTo("/");
+        NavigationManager.NavigateTo("");
     }
     private async Task DisposeTimers()
     {

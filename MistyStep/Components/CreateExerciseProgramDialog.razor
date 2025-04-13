@@ -1,24 +1,23 @@
 ﻿
 @using MistyStep.Models
 @using MistyStep.Services
-<MudDialog>
+<MudDialog Style="height:80%;">
     <TitleContent>
         Create Exercise
     </TitleContent>
     <DialogContent>
-        <MudPaper Class="pa-4">
             <MudForm Model="@ExerciseProgram" @bind-IsValid="@success" @bind-Errors="@errors">
                 <MudTextField @bind-Value="ExerciseProgram.Name" T="string" Label="Program Name" Required="true" RequiredError="Program name is required!" />
                 <MudSelect T="Exercise" Label="Exercises" MultiSelection="true" SelectedValuesChanged="@(e => {ExerciseProgram.ExerciseIds = e.Select(x => x.Id).ToList();})">
                     @foreach (var exercise in AvailableExercises)
                     {
-                        <MudSelectItem T="Exercise" Value="@exercise">@exercise.Name - @exercise.PointPerRep</MudSelectItem>
+                        <MudSelectItem T="Exercise" Value="@exercise">@exercise.Name - @exercise.PointsPerRep</MudSelectItem>
                     }
                 </MudSelect>
+                <MudNumericField @bind-Value="ExerciseProgram.ExerciseDurationInSeconds" T="int?" Label="Exercise duration" />
                 <MudNumericField @bind-Value="ExerciseProgram.PauseDurationInSeconds" T="int?" Label="pause duration" />
 
             </MudForm>
-        </MudPaper>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
