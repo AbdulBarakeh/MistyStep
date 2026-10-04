@@ -78,6 +78,8 @@ public class TransferPackage
     public Exercise? Exercise { get; set; }
     public ExerciseProgram? Program { get; set; }
     public List<Exercise> Exercises { get; set; } = [];
+    public List<ExerciseProgram> Programs { get; set; } = [];
+    public List<ExerciseRecord> Records { get; set; } = [];
 }
 
 public record ExerciseRecord(Guid Id, DateTime RecordSet, Guid ExerciseId, Guid ExerciseProgramId, double Reps);

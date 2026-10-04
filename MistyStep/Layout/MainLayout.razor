@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
-@inject NavigationManager navigator
-<MudThemeProvider Theme="@AppTheme" IsDarkMode="false" />
+@using MistyStep.Services
+@inject ThemePreferenceService ThemePreferences
+@implements IDisposable
+<MudThemeProvider Theme="@AppTheme" IsDarkMode="@ThemePreferences.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider FullWidth="true"
     CloseButton="true"
@@ -12,13 +14,16 @@
     />
 <MudSnackbarProvider />
 
-<div class="app-shell">
+<div class="app-shell @(ThemePreferences.IsDarkMode ? "app-shell-dark" : string.Empty)">
     <header class="app-header">
         <a class="app-brand" href="" aria-label="MistyStep home">
             <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" />
             <MudText Typo="Typo.subtitle1">MistyStep</MudText>
         </a>
-        <MudText Typo="Typo.caption" Class="app-header-label">CIRCUIT TRAINING</MudText>
+        <div class="app-header-meta">
+            <MudText Typo="Typo.caption" Class="app-header-label">CIRCUIT TRAINING</MudText>
+            <MudIconButton Href="/settings" Icon="@Icons.Material.Outlined.Settings" Color="Color.Default" aria-label="Settings" title="Settings" />
+        </div>
     </header>
     <main class="app-main">
         @Body
@@ -44,8 +49,35 @@
             Divider = "#E1E8E4",
             AppbarBackground = "#FFFFFF",
             AppbarText = "#1D3029"
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#75C7A8",
+            Secondary = "#A2B9CB",
+            Tertiary = "#DDA978",
+            Info = "#8AC9D5",
+            Success = "#8AC69E",
+            Warning = "#E5B66F",
+            Error = "#E18A84",
+            Background = "#171F1B",
+            Surface = "#222C27",
+            TextPrimary = "#E8F0EB",
+            TextSecondary = "#B0BEB6",
+            Divider = "#36423B",
+            AppbarBackground = "#202923",
+            AppbarText = "#E8F0EB"
         }
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        ThemePreferences.ThemeChanged += HandleThemeChanged;
+        await ThemePreferences.InitializeAsync();
+    }
+
+    private void HandleThemeChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => ThemePreferences.ThemeChanged -= HandleThemeChanged;
 }
 
 

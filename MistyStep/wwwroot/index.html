@@ -50,6 +50,27 @@
             database.close();
         };
 
+        window.mistyStepDbDelete = async (storeName, id) => {
+            const request = indexedDB.open("MistyStep", 1);
+            const database = await new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+            await new Promise((resolve, reject) => {
+                const transaction = database.transaction(storeName, "readwrite");
+                transaction.objectStore(storeName).delete(id);
+                transaction.oncomplete = resolve;
+                transaction.onerror = () => reject(transaction.error);
+            });
+            database.close();
+        };
+
+        window.mistyStepWerePredefinedExercisesSeeded = () =>
+            localStorage.getItem("mistystep-predefined-exercises-seeded") === "true";
+
+        window.mistyStepMarkPredefinedExercisesSeeded = () =>
+            localStorage.setItem("mistystep-predefined-exercises-seeded", "true");
+
         window.downloadMistyStepFile = (fileName, base64) => {
             const bytes = Uint8Array.from(atob(base64), character => character.charCodeAt(0));
             const url = URL.createObjectURL(new Blob([bytes], { type: "application/json" }));
@@ -62,6 +83,23 @@
 
         window.clickMistyStepFileInput = inputId => {
             document.getElementById(inputId)?.click();
+        };
+
+        window.mistyStepGetThemeMode = () => {
+            const mode = localStorage.getItem("mistystep-theme-mode");
+            return ["system", "light", "dark"].includes(mode) ? mode : "system";
+        };
+
+        window.mistyStepResolveTheme = mode => mode === "dark" ||
+            (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+        window.mistyStepSetThemeMode = mode => {
+            if (mode === "system") {
+                localStorage.removeItem("mistystep-theme-mode");
+                return;
+            }
+
+            localStorage.setItem("mistystep-theme-mode", mode);
         };
     </script>
 

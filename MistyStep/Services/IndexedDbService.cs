@@ -33,6 +33,9 @@ public class IndexedDbService : IIndexedDbService
     public Task UpsertExerciseAsync(Exercise exercise) =>
         _jsRuntime.InvokeVoidAsync("mistyStepDbPut", "exercises", exercise).AsTask();
 
+    public Task DeleteExerciseAsync(Guid id) =>
+        _jsRuntime.InvokeVoidAsync("mistyStepDbDelete", "exercises", id.ToString()).AsTask();
+
     public async Task<List<Exercise>> GetExercisesAsync()
     {
         return await _dbManager.GetRecords<Exercise>("exercises");
@@ -50,6 +53,9 @@ public class IndexedDbService : IIndexedDbService
 
     public Task UpsertProgramAsync(ExerciseProgram program) =>
         _jsRuntime.InvokeVoidAsync("mistyStepDbPut", "exercisePrograms", program).AsTask();
+
+    public Task DeleteProgramAsync(Guid id) =>
+        _jsRuntime.InvokeVoidAsync("mistyStepDbDelete", "exercisePrograms", id.ToString()).AsTask();
 
     public async Task<List<ExerciseProgram>> GetProgramsAsync()
     {
@@ -71,6 +77,12 @@ public class IndexedDbService : IIndexedDbService
         await _dbManager.AddRecord(storeRecord);
     }
 
+    public Task UpsertRecordAsync(ExerciseRecord record) =>
+        _jsRuntime.InvokeVoidAsync("mistyStepDbPut", "exerciseRecords", record).AsTask();
+
+    public Task DeleteRecordAsync(Guid id) =>
+        _jsRuntime.InvokeVoidAsync("mistyStepDbDelete", "exerciseRecords", id.ToString()).AsTask();
+
     public async Task<List<ExerciseRecord>> GetRecordsAsync()
     {
         return await _dbManager.GetRecords<ExerciseRecord>("exerciseRecords");
@@ -79,6 +91,11 @@ public class IndexedDbService : IIndexedDbService
 
     public async Task SeedPredefinedExercisesAsync()
     {
+        if (await _jsRuntime.InvokeAsync<bool>("mistyStepWerePredefinedExercisesSeeded"))
+        {
+            return;
+        }
+
         var existingExercises = await GetExercisesAsync();
 
         if (existingExercises.Count == 0)
@@ -88,6 +105,8 @@ public class IndexedDbService : IIndexedDbService
                 await AddExerciseAsync(exercise);
             }
         }
+
+        await _jsRuntime.InvokeVoidAsync("mistyStepMarkPredefinedExercisesSeeded");
     }
 
     public async Task ExportDataAsync()

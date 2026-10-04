@@ -1,0 +1,31 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Delete @ItemType?</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText><strong>@ItemName</strong> will be permanently deleted.</MudText>
+        <MudText Typo="Typo.body2" Class="mt-2">@Details</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.DeleteOutline" OnClick="Confirm">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string ItemType { get; set; } = "item";
+
+    [Parameter]
+    public string ItemName { get; set; } = "";
+
+    [Parameter]
+    public string Details { get; set; } = "";
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

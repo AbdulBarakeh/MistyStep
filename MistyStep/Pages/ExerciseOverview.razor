@@ -18,6 +18,7 @@
                             <MudStack Row="true" Spacing="0" Class="catalog-actions">
                                 <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" aria-label="Edit exercise" title="Edit exercise" OnClick="@(() => EditExercise(exercise))" />
                                 <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.FileDownload" aria-label="Export exercise" title="Export exercise" OnClick="@(() => ExportExercise(exercise))" />
+                                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="Delete exercise" title="Delete exercise" OnClick="@(() => DeleteExercise(exercise))" />
                             </MudStack>
                         </MudStack>
                     </MudPaper>
@@ -124,17 +125,38 @@
         await JSRuntime.InvokeVoidAsync("downloadMistyStepFile", $"mistystep-exercise-{exercise.Name}.json", base64);
     }
 
+    private async Task DeleteExercise(Exercise exercise)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ItemType"] = "exercise",
+            ["ItemName"] = exercise.Name,
+            ["Details"] = "This also removes the exercise from every program and deletes its workout records."
+        };
+        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>("Confirm delete", parameters);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        await ExerciseService.DeleteExerciseAsync(exercise.Id);
+        Snackbar.Add("Exercise deleted.", Severity.Success);
+        await ReloadExercises();
+    }
+
     private async Task ImportFile(InputFileChangeEventArgs args)
     {
         IsFabExpanded = false;
-        if (string.IsNullOrWhiteSpace(args.File.Name))
+        var file = args.GetMultipleFiles().FirstOrDefault();
+        if (file is null)
         {
             return;
         }
 
         try
         {
-            await using var stream = args.File.OpenReadStream(1_000_000);
+            await using var stream = file.OpenReadStream(1_000_000);
             using var reader = new StreamReader(stream);
             await ExerciseService.ImportDataAsync(await reader.ReadToEndAsync());
             await ReloadExercises();

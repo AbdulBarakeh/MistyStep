@@ -24,6 +24,24 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
         return true;
     }
 
+    public async Task DeleteExerciseAsync(Guid exerciseId)
+    {
+        var programs = await DbService.GetProgramsAsync();
+        foreach (var program in programs.Where(program => program.ExerciseIds.Contains(exerciseId)))
+        {
+            program.ExerciseIds.RemoveAll(id => id == exerciseId);
+            await DbService.UpsertProgramAsync(program);
+        }
+
+        var records = await DbService.GetRecordsAsync();
+        foreach (var record in records.Where(record => record.ExerciseId == exerciseId))
+        {
+            await DbService.DeleteRecordAsync(record.Id);
+        }
+
+        await DbService.DeleteExerciseAsync(exerciseId);
+    }
+
     public async Task<bool> CreateNewExerciseProgram(ExerciseProgram program)
     {
         var temp = program;
@@ -41,6 +59,17 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
     {
         await DbService.UpsertProgramAsync(program);
         return true;
+    }
+
+    public async Task DeleteExerciseProgramAsync(Guid programId)
+    {
+        var records = await DbService.GetRecordsAsync();
+        foreach (var record in records.Where(record => record.ExerciseProgramId == programId))
+        {
+            await DbService.DeleteRecordAsync(record.Id);
+        }
+
+        await DbService.DeleteProgramAsync(programId);
     }
 
     public async Task<string> ExportExerciseAsync(Exercise exercise)
@@ -62,6 +91,17 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
             Type = "program",
             Program = program,
             Exercises = exercises.Where(exercise => program.ExerciseIds.Contains(exercise.Id)).ToList()
+        }, JsonOptions);
+    }
+
+    public async Task<string> ExportAllDataAsync()
+    {
+        return JsonSerializer.Serialize(new TransferPackage
+        {
+            Type = "backup",
+            Exercises = await DbService.GetExercisesAsync(),
+            Programs = await DbService.GetProgramsAsync(),
+            Records = await DbService.GetRecordsAsync()
         }, JsonOptions);
     }
 
@@ -92,7 +132,27 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
             return;
         }
 
-        throw new InvalidOperationException("The selected file does not contain an exercise or exercise program.");
+        if (package.Type == "backup")
+        {
+            foreach (var exercise in package.Exercises ?? [])
+            {
+                await DbService.UpsertExerciseAsync(exercise);
+            }
+
+            foreach (var program in package.Programs ?? [])
+            {
+                await DbService.UpsertProgramAsync(program);
+            }
+
+            foreach (var record in package.Records ?? [])
+            {
+                await DbService.UpsertRecordAsync(record);
+            }
+
+            return;
+        }
+
+        throw new InvalidOperationException("The selected file does not contain a supported MistyStep export or backup.");
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)

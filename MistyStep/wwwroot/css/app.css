@@ -59,6 +59,96 @@ body {
     letter-spacing: .08em;
 }
 
+.app-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.app-shell-dark {
+    --app-page: #171F1B;
+    --app-surface: #222C27;
+    --app-border: #36423B;
+    --app-text: #E8F0EB;
+    --app-muted: #B0BEB6;
+}
+
+.app-shell-dark .empty-state-icon {
+    background: #2B3B33;
+}
+
+.settings-page {
+    width: min(100%, 720px);
+    margin: 0 auto;
+    padding: clamp(16px, 4vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-section {
+    padding: 20px !important;
+    border: 1px solid var(--app-border) !important;
+    border-radius: 12px !important;
+    background: var(--app-surface) !important;
+    box-shadow: none !important;
+}
+
+.settings-section-copy {
+    color: var(--app-muted) !important;
+}
+
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0;
+}
+
+.theme-option {
+    min-width: 0;
+}
+
+.theme-option .mud-button-root {
+    width: 100%;
+    min-height: 44px;
+}
+
+.settings-backup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+@media (max-width: 600px) {
+    .app-header-meta {
+        gap: 4px;
+    }
+
+    .settings-page {
+        padding: 14px;
+    }
+
+    .settings-section {
+        padding: 16px !important;
+    }
+
+    .theme-options {
+        gap: 6px;
+    }
+
+    .theme-option .mud-button-root {
+        padding-inline: 8px;
+    }
+}
+
 .app-main {
     flex: 1;
     min-height: 0;

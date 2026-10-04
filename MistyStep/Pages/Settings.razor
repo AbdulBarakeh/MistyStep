@@ -1,0 +1,118 @@
+@page "/settings"
+@using MistyStep.Services
+@inject ThemePreferenceService ThemePreferences
+@inject IExerciseService ExerciseService
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+
+<div class="settings-page">
+    <div class="settings-heading">
+        <MudIconButton Href="/" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="Back to MistyStep" title="Back" />
+        <div>
+            <MudText Typo="Typo.h5">Settings</MudText>
+            <MudText Typo="Typo.body2" Class="settings-section-copy">Appearance and local data</MudText>
+        </div>
+    </div>
+
+    <MudPaper Class="settings-section" Outlined="true" Elevation="0">
+        <MudText Typo="Typo.h6">Appearance</MudText>
+        <MudText Typo="Typo.body2" Class="settings-section-copy">Choose how MistyStep looks on this device.</MudText>
+
+        <div class="theme-options" role="group" aria-label="Color theme">
+            <div class="theme-option">
+                <MudButton Variant="@(ThemePreferences.Mode == "system" ? Variant.Filled : Variant.Outlined)"
+                           Color="@(ThemePreferences.Mode == "system" ? Color.Primary : Color.Default)"
+                           StartIcon="@Icons.Material.Outlined.BrightnessAuto"
+                           aria-pressed="@(ThemePreferences.Mode == "system")"
+                           OnClick="@(() => ChangeTheme("system"))">System</MudButton>
+            </div>
+            <div class="theme-option">
+                <MudButton Variant="@(ThemePreferences.Mode == "light" ? Variant.Filled : Variant.Outlined)"
+                           Color="@(ThemePreferences.Mode == "light" ? Color.Primary : Color.Default)"
+                           StartIcon="@Icons.Material.Outlined.LightMode"
+                           aria-pressed="@(ThemePreferences.Mode == "light")"
+                           OnClick="@(() => ChangeTheme("light"))">Light</MudButton>
+            </div>
+            <div class="theme-option">
+                <MudButton Variant="@(ThemePreferences.Mode == "dark" ? Variant.Filled : Variant.Outlined)"
+                           Color="@(ThemePreferences.Mode == "dark" ? Color.Primary : Color.Default)"
+                           StartIcon="@Icons.Material.Outlined.DarkMode"
+                           aria-pressed="@(ThemePreferences.Mode == "dark")"
+                           OnClick="@(() => ChangeTheme("dark"))">Dark</MudButton>
+            </div>
+        </div>
+        <MudText Typo="Typo.caption" Class="settings-section-copy">Currently using @CurrentAppearance appearance.</MudText>
+    </MudPaper>
+
+    <MudPaper Class="settings-section" Outlined="true" Elevation="0">
+        <MudText Typo="Typo.h6">Data backup</MudText>
+        <MudText Typo="Typo.body2" Class="settings-section-copy">
+            Export one file with all exercises, programs, point tables, and workout records. Import it on another device to restore your local data.
+        </MudText>
+        <MudText Typo="Typo.caption" Class="settings-section-copy mt-2">
+            Import merges by ID: matching items are updated and other items already on this device are kept.
+        </MudText>
+
+        <div class="settings-backup-actions">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.FileDownload" OnClick="ExportBackup">
+                Export all data
+            </MudButton>
+            <MudButton Color="Color.Primary" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.FileUpload" OnClick="ChooseBackup">
+                Import backup
+            </MudButton>
+        </div>
+        <InputFile id="fullBackupInput" style="display:none" OnChange="ImportBackup" accept=".json,application/json" />
+    </MudPaper>
+</div>
+
+@code {
+    private string CurrentAppearance => ThemePreferences.IsDarkMode ? "dark" : "light";
+
+    private async Task ChangeTheme(string mode)
+    {
+        await ThemePreferences.SetModeAsync(mode);
+        StateHasChanged();
+    }
+
+    private async Task ExportBackup()
+    {
+        try
+        {
+            var json = await ExerciseService.ExportAllDataAsync();
+            var base64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
+            var fileName = $"MistyStep-backup-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json";
+            await JSRuntime.InvokeVoidAsync("downloadMistyStepFile", fileName, base64);
+            Snackbar.Add("Backup exported.", Severity.Success);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Export failed: {exception.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ChooseBackup()
+    {
+        await JSRuntime.InvokeVoidAsync("clickMistyStepFileInput", "fullBackupInput");
+    }
+
+    private async Task ImportBackup(InputFileChangeEventArgs args)
+    {
+        var file = args.GetMultipleFiles().FirstOrDefault();
+        if (file is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var stream = file.OpenReadStream(25_000_000);
+            using var reader = new StreamReader(stream);
+            await ExerciseService.ImportDataAsync(await reader.ReadToEndAsync());
+            Snackbar.Add("Backup imported.", Severity.Success);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Import failed: {exception.Message}", Severity.Error);
+        }
+    }
+}
