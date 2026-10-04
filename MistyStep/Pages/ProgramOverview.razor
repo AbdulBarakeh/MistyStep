@@ -1,39 +1,43 @@
 ﻿@using MistyStep.Components
 @using MistyStep.Services
 @using System.Collections.ObjectModel
-<style>
-    .scroll-stack {
-    overflow: auto;
-    height: calc(100vh - var(--navbar-height));
-    }
-
-</style>
-<div>
-
-    <div class="scroll-stack">
-        <MudStack>
-
-
-                @if (Programs is { Count: > 0 })
+<div class="catalog-page">
+    <div class="catalog-scroll">
+        <MudStack Class="catalog-list" Spacing="0">
+            @if (Programs is { Count: > 0 })
+            {
+                @foreach (var program in Programs)
                 {
-                    @foreach (var program in Programs)
-                    {
-                        <MudPaper Class="pa-5">
-                            <div>
-                                @program.Name
-                                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => RunProgram(program.Id))">Kør Program</MudButton>
-                                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => GoToRecords(program.Id))">Se Program rekorder</MudButton>
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" aria-label="Edit program" OnClick="@(() => EditProgram(program))" />
-                                <MudIconButton Icon="@Icons.Material.Filled.FileDownload" aria-label="Export program with exercises and point table" OnClick="@(() => ExportProgram(program))" />
-                            </div>
-                        </MudPaper>
-                    }
+                    <MudPaper Class="catalog-item" Outlined="true" Elevation="0">
+                        <MudStack Spacing="2">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.subtitle1" Class="catalog-item-title">@program.Name</MudText>
+                                <MudStack Row="true" Spacing="0" Class="catalog-actions">
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" aria-label="Edit program" title="Edit program" OnClick="@(() => EditProgram(program))" />
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.FileDownload" aria-label="Export program with exercises and point table" title="Export program" OnClick="@(() => ExportProgram(program))" />
+                                </MudStack>
+                            </MudStack>
+                            <MudStack Row="true" Class="program-card-actions" Spacing="1">
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" StartIcon="@Icons.Material.Filled.PlayArrow" OnClick="@(() => RunProgram(program.Id))">Run program</MudButton>
+                                <MudButton Color="Color.Primary" Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Insights" OnClick="@(() => GoToRecords(program.Id))">Records</MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
                 }
-                else
-                {
-                    <h1>No programs available</h1>
-                }
-           
+            }
+            else if (IsLoaded)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><MudIcon Icon="@Icons.Material.Outlined.FactCheck" Size="Size.Large" /></div>
+                    <MudText Typo="Typo.h6">No programs yet</MudText>
+                    <MudText Typo="Typo.body2" Class="empty-state-copy">Create a circuit from your exercise catalog, or import a program to get started.</MudText>
+                </div>
+            }
+            else
+            {
+                <MudSkeleton Height="92px" />
+                <MudSkeleton Height="92px" />
+            }
         </MudStack>
     </div>
     <InputFile id="programImportInput" style="display:none" OnChange="ImportFile" accept=".json,application/json" />
@@ -58,6 +62,8 @@
 
     private bool IsFabExpanded { get; set; }
 
+    private bool IsLoaded { get; set; }
+
     
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -67,11 +73,12 @@
             var exerciseProgramsResult = await ExerciseService.GetExercisePrograms();
             if (!exerciseProgramsResult.IsSuccess)
             {
-                // Handle error
+                IsLoaded = true;
+                StateHasChanged();
                 return;
             }
             exerciseProgramsResult.Data!.ForEach(program => Programs.Add(program));
-            
+            IsLoaded = true;
             StateHasChanged();
         }
 

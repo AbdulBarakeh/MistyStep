@@ -1,35 +1,34 @@
 ﻿@page "/run/program/{Id:guid}";
 @using MistyStep.Models
 @using MistyStep.Services
-<div class="program-container">
+<div class="active-program-page">
 
     @if (Initialized)
     {
         @if (Program is not null)
         {
-            <MudPaper Class="pa-5">
-                Current Program:   @Program!.Name
+            <MudPaper Class="active-program-heading" Outlined="true" Elevation="0">
+                <MudText Typo="Typo.overline" Class="active-kicker">PROGRAM</MudText>
+                <MudText Typo="Typo.h6">@Program.Name</MudText>
             </MudPaper>
         }
 
-        @if (CurrentExercise is not null)
+        @if (CurrentExercise is not null && Program is not null)
         {
-            <MudPaper Class="pa-5">
-                Current Exercise:  @CurrentExercise!.Name
+            <MudPaper Class="active-exercise-panel" Outlined="true" Elevation="0">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.overline" Class="active-kicker">EXERCISE @(CurrentExerciseIndex + 1) OF @ProgramExercises.Length</MudText>
+                    <MudText Typo="Typo.h4">@CurrentExercise.Name</MudText>
+                    @if (NextExercise is not null)
+                    {
+                        <MudText Typo="Typo.body2" Class="catalog-item-detail">UP NEXT · @NextExercise.Name</MudText>
+                    }
+                </MudStack>
             </MudPaper>
         }
 
-        @if (NextExercise is not null)
-        {
-
-            <MudPaper Class="pa-5">
-                Next Exercise:  @NextExercise!.Name
-            </MudPaper>
-        }
-
-        <MudPaper Class="pa-5">
-            Number of Repetitions:
-            <MudInput @ref="Input" T="double" @bind-Value="@InputValue" InputType="InputType.Number"></MudInput>
+        <MudPaper Class="repetition-panel" Outlined="true" Elevation="0">
+            <MudNumericField @ref="Input" T="double" @bind-Value="InputValue" Label="Repetitions" Variant="Variant.Outlined" Min="0" />
         </MudPaper>
 
         @if (Program!.ExerciseDurationInSeconds is not null)
@@ -37,17 +36,19 @@
             <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="TimerEnd" OnPauseTimerEnd="GoToNextExercise"></MistyStep.Components.Timer>
         }
 
-        <div class="buttons-container">
-
-            <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">Go To Result</MudButton>
-            <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" Disabled="@(Program!.ExerciseDurationInSeconds is null)" OnClick="@(() => TimerComp!.StartTimer(Program!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
+        <div class="active-actions">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.SkipNext" OnClick="GoToNextExercise">Next exercise</MudButton>
+            <MudButton Color="Color.Default" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.Assessment" OnClick="GoToResult">Results</MudButton>
+            <MudButton Color="Color.Default" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.Close" OnClick="GoToOverview">Exit</MudButton>
         </div>
     }
     else
     {
-        <MudSkeleton></MudSkeleton>
+        <MudStack Spacing="2">
+            <MudSkeleton Height="76px" />
+            <MudSkeleton Height="180px" />
+            <MudSkeleton Height="72px" />
+        </MudStack>
     }
 
 </div>
@@ -79,7 +80,7 @@
 
     private int CurrentExerciseIndex { get; set; } = 0;
 
-    private MudInput<double>? Input { get; set; }
+    private MudNumericField<double>? Input { get; set; }
 
     private double InputValue { get; set; } = 0;
 

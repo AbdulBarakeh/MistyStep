@@ -1,14 +1,240 @@
 :root {
     --navbar-height: 64px;
+    --app-header-height: 60px;
+    --app-page: #F3F6F4;
+    --app-surface: #FFFFFF;
+    --app-border: #E1E8E4;
+    --app-text: #1D3029;
+    --app-muted: #64736D;
 }
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    min-height: 100%;
 }
 
 body {
-    height: 100vh;
-    width: auto;
+    min-height: 100vh;
+    background: var(--app-page);
+    color: var(--app-text);
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    height: var(--app-header-height);
+    flex: 0 0 var(--app-header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 clamp(16px, 4vw, 36px);
+    background: var(--app-surface);
+    border-bottom: 1px solid var(--app-border);
+}
+
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--app-text);
+    text-decoration: none;
+}
+
+.app-brand .mud-typography {
+    font-weight: 700;
+}
+
+.app-header-label {
+    color: var(--app-muted);
+    font-weight: 600;
+    letter-spacing: .08em;
+}
+
+.app-main {
+    flex: 1;
+    min-height: 0;
+}
+
+.home-tabs {
+    min-height: calc(100dvh - var(--app-header-height));
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.home-tabs > .mud-tabs-toolbar {
+    min-height: var(--navbar-height);
+    background: var(--app-surface);
+    border-top: 1px solid var(--app-border);
+    box-shadow: none;
+    z-index: 4;
+}
+
+.home-tabs .mud-tab {
+    min-height: var(--navbar-height);
+    color: var(--app-muted);
+    font-weight: 600;
+}
+
+.home-tabs .mud-tab.mud-tab-active {
+    color: var(--mud-palette-primary);
+}
+
+.home-tabs > .mud-tabs-panels {
+    flex: 1;
+    min-height: 0;
+    background: var(--app-page);
+}
+
+.home-tab-panel {
+    height: 100%;
+    padding: 18px clamp(14px, 4vw, 36px) 24px;
+}
+
+.catalog-page {
+    width: min(100%, 820px);
+    height: 100%;
+    margin: 0 auto;
+}
+
+.catalog-scroll {
+    height: calc(100dvh - var(--app-header-height) - var(--navbar-height) - 44px);
+    overflow-y: auto;
+    padding: 2px 2px 88px;
+    scrollbar-gutter: stable;
+}
+
+.catalog-list {
+    gap: 12px !important;
+}
+
+.catalog-item {
+    border: 1px solid var(--app-border) !important;
+    border-radius: 10px !important;
+    background: var(--app-surface) !important;
+    box-shadow: none !important;
+    padding: 14px 16px !important;
+}
+
+.catalog-item-title {
+    color: var(--app-text);
+    font-weight: 650 !important;
+}
+
+.catalog-item-detail {
+    color: var(--app-muted) !important;
+}
+
+.catalog-actions {
+    align-items: center;
+}
+
+.empty-state {
+    min-height: min(54vh, 440px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: #E6F0EC;
+    color: var(--mud-palette-primary);
+}
+
+.empty-state-copy {
+    max-width: 340px;
+    color: var(--app-muted) !important;
+}
+
+.active-program-page {
+    width: min(100%, 720px);
+    min-height: calc(100dvh - var(--app-header-height));
+    margin: 0 auto;
+    padding: clamp(16px, 4vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.active-program-heading,
+.active-exercise-panel,
+.repetition-panel {
+    border: 1px solid var(--app-border) !important;
+    border-radius: 12px !important;
+    background: var(--app-surface) !important;
+    box-shadow: none !important;
+}
+
+.active-program-heading {
+    padding: 14px 18px !important;
+}
+
+.active-exercise-panel {
+    padding: 20px !important;
+}
+
+.repetition-panel {
+    padding: 14px 18px !important;
+}
+
+.active-kicker {
+    color: var(--app-muted);
+    font-weight: 700 !important;
+    letter-spacing: .08em;
+}
+
+.active-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: auto;
+    padding: 12px 0 8px;
+}
+
+@media (max-width: 600px) {
+    .app-header-label {
+        font-size: .68rem;
+    }
+
+    .home-tab-panel {
+        padding: 12px 12px 20px;
+    }
+
+    .catalog-scroll {
+        height: calc(100dvh - var(--app-header-height) - var(--navbar-height) - 32px);
+    }
+
+    .catalog-item {
+        padding: 12px !important;
+    }
+
+    .active-program-page {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .active-actions > .mud-button-root {
+        flex: 1 1 calc(50% - 10px);
+    }
+}
 }
 
 h1:focus {

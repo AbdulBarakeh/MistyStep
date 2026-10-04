@@ -1,8 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager navigator
-<MudThemeProvider  IsDarkMode="true"/>
+<MudThemeProvider Theme="@AppTheme" IsDarkMode="false" />
 <MudPopoverProvider />
-<MudDialogProvider  FullWidth="true"
+<MudDialogProvider FullWidth="true"
     CloseButton="true"
     BackdropClick="false"
     NoHeader="true"
@@ -12,6 +12,40 @@
     />
 <MudSnackbarProvider />
 
-@Body
+<div class="app-shell">
+    <header class="app-header">
+        <a class="app-brand" href="" aria-label="MistyStep home">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" />
+            <MudText Typo="Typo.subtitle1">MistyStep</MudText>
+        </a>
+        <MudText Typo="Typo.caption" Class="app-header-label">CIRCUIT TRAINING</MudText>
+    </header>
+    <main class="app-main">
+        @Body
+    </main>
+</div>
+
+@code {
+    private static readonly MudTheme AppTheme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#176B5B",
+            Secondary = "#466B86",
+            Tertiary = "#9A633A",
+            Info = "#3E8295",
+            Success = "#397457",
+            Warning = "#A96C25",
+            Error = "#B34D4D",
+            Background = "#F3F6F4",
+            Surface = "#FFFFFF",
+            TextPrimary = "#1D3029",
+            TextSecondary = "#64736D",
+            Divider = "#E1E8E4",
+            AppbarBackground = "#FFFFFF",
+            AppbarText = "#1D3029"
+        }
+    };
+}
 
 
