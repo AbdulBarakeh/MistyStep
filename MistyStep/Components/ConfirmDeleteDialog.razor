@@ -1,14 +1,16 @@
+@inject IStringLocalizer<SharedResource> Localizer
+
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Delete @ItemType?</MudText>
+        <MudText Typo="Typo.h6">@Localizer["Delete {0}?", ItemType]</MudText>
     </TitleContent>
     <DialogContent>
-        <MudText><strong>@ItemName</strong> will be permanently deleted.</MudText>
+        <MudText>@Localizer["{0} will be permanently deleted.", ItemName]</MudText>
         <MudText Typo="Typo.body2" Class="mt-2">@Details</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.DeleteOutline" OnClick="Confirm">Delete</MudButton>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.DeleteOutline" OnClick="Confirm">@Localizer["Delete action"]</MudButton>
     </DialogActions>
 </MudDialog>
 

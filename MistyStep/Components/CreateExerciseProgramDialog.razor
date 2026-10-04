@@ -1,39 +1,40 @@
 ﻿
 @using MistyStep.Models
 @using MistyStep.Services
+@inject IStringLocalizer<SharedResource> Localizer
 <MudDialog Style="height:80%;">
     <TitleContent>
-        @(ProgramToEdit is null ? "Create Program" : "Edit Program")
+        @(ProgramToEdit is null ? Localizer["Programme dialog create title"] : Localizer["Programme dialog edit title"])
     </TitleContent>
     <DialogContent>
             <MudForm Model="@ExerciseProgram" @bind-IsValid="@success" @bind-Errors="@errors">
-                <MudTextField @bind-Value="ExerciseProgram.Name" T="string" Label="Program Name" Required="true" RequiredError="Program name is required!" />
-                <MudSelect T="Exercise" Label="Exercises" MultiSelection="true" @bind-SelectedValues="SelectedExercises">
+                <MudTextField @bind-Value="ExerciseProgram.Name" T="string" Label="@Localizer["Program Name"]" Required="true" RequiredError="@Localizer["Program name is required!"]" />
+                <MudSelect T="Exercise" Label="@Localizer["Exercises label"]" MultiSelection="true" @bind-SelectedValues="SelectedExercises">
                     @foreach (var exercise in AvailableExercises)
                     {
                         <MudSelectItem T="Exercise" Value="@exercise">@exercise.Name - @exercise.PointsPerRep</MudSelectItem>
                     }
                 </MudSelect>
-                <MudNumericField @bind-Value="ExerciseProgram.ExerciseDurationInSeconds" T="int?" Label="Exercise duration" />
-                <MudNumericField @bind-Value="ExerciseProgram.PauseDurationInSeconds" T="int?" Label="pause duration" />
+                <MudNumericField @bind-Value="ExerciseProgram.ExerciseDurationInSeconds" T="int?" Label="@Localizer["Exercise duration"]" />
+                <MudNumericField @bind-Value="ExerciseProgram.PauseDurationInSeconds" T="int?" Label="@Localizer["Pause duration"]" />
 
-                <MudText Typo="Typo.subtitle1" Class="mt-4">Point table</MudText>
+                <MudText Typo="Typo.subtitle1" Class="mt-4">@Localizer["Point table"]</MudText>
                 @foreach (var band in ExerciseProgram.PointTable)
                 {
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        <MudTextField @bind-Value="band.Category" Label="Strength category" />
-                        <MudNumericField @bind-Value="band.MinimumPoints" Label="From points" />
-                        <MudNumericField @bind-Value="band.MaximumPoints" Label="To points" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="Remove point band" OnClick="@(() => RemoveBand(band))" />
+                        <MudTextField @bind-Value="band.Category" Label="@Localizer["Strength category"]" />
+                        <MudNumericField @bind-Value="band.MinimumPoints" Label="@Localizer["From points"]" />
+                        <MudNumericField @bind-Value="band.MaximumPoints" Label="@Localizer["To points"]" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="@Localizer["Remove point band"]" OnClick="@(() => RemoveBand(band))" />
                     </MudStack>
                 }
-                <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="AddBand">Add point band</MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="AddBand">@Localizer["Add point band"]</MudButton>
 
             </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Save</MudButton>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">@Localizer["Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

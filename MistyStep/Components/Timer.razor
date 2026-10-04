@@ -1,10 +1,12 @@
-﻿<div class="circle-container" style="">
+﻿@inject IStringLocalizer<SharedResource> Localizer
+
+<div class="circle-container" style="">
 
     <div class="outer-circle">
         <div class="timer">
             @if (isPauseTimerRunning)
             {
-                <div class="timer-phase">PAUSE</div>
+                <div class="timer-phase">@Localizer["PAUSE"]</div>
             }
             <h1>@(timeRemaining ?? TimeSpan.Zero)</h1>
         </div>

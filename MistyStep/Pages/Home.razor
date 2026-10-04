@@ -1,14 +1,14 @@
 ﻿@page "/"
 @using MistyStep.Components
-
+@inject IStringLocalizer<SharedResource> Localizer
 
 <MudTabs Class="home-tabs" Elevation="0" Rounded="false" Color="@Color.Primary" Position="Position.Bottom">
-    <MudTabPanel Text="Øvelser">
+    <MudTabPanel Text="@Localizer["Exercises"]">
         <ChildContent>
             <ExerciseOverview></ExerciseOverview>
         </ChildContent>
     </MudTabPanel>
-    <MudTabPanel Text="Program" >
+    <MudTabPanel Text="@Localizer["Programs"]">
         <ChildContent>
             <ProgramOverview></ProgramOverview>
         </ChildContent>

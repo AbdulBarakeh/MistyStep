@@ -101,6 +101,24 @@
 
             localStorage.setItem("mistystep-theme-mode", mode);
         };
+
+        window.mistyStepGetLanguage = () => {
+            const savedLanguage = localStorage.getItem("mistystep-language");
+            if (["da-DK", "en-GB"].includes(savedLanguage)) {
+                document.documentElement.lang = savedLanguage;
+                return savedLanguage;
+            }
+
+            const browserLanguage = (navigator.languages?.[0] || navigator.language || "").toLowerCase();
+            const detectedLanguage = browserLanguage.startsWith("da") ? "da-DK" : "en-GB";
+            document.documentElement.lang = detectedLanguage;
+            return detectedLanguage;
+        };
+
+        window.mistyStepSetLanguage = language => {
+            localStorage.setItem("mistystep-language", language);
+            document.documentElement.lang = language;
+        };
     </script>
 
     <script>navigator.serviceWorker.register('service-worker.js');</script>

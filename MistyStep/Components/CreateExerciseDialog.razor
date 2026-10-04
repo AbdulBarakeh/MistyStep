@@ -1,21 +1,22 @@
 ﻿@using MistyStep.Models
 @using MistyStep.Services
 @using MudBlazor;
+@inject IStringLocalizer<SharedResource> Localizer
 
 <MudDialog Style="height:80%;">
     <TitleContent>
-        @(ExerciseToEdit is null ? "Create Exercise" : "Edit Exercise")
+        @(ExerciseToEdit is null ? Localizer["Exercise dialog create title"] : Localizer["Exercise dialog edit title"])
     </TitleContent>
     <DialogContent>
         <MudForm Model="@ExerciseModel" @bind-IsValid="@success" @bind-Errors="@errors">
-            <MudTextField @bind-Value="ExerciseModel.Name" T="string" Label="Exercise Name" Required="true" RequiredError="Exercise name is required!" />
-            <MudNumericField @bind-Value="ExerciseModel.PointsPerRep" T="double" Label="Points per rep" />
+            <MudTextField @bind-Value="ExerciseModel.Name" T="string" Label="@Localizer["Exercise Name"]" Required="true" RequiredError="@Localizer["Exercise name is required!"]" />
+            <MudNumericField @bind-Value="ExerciseModel.PointsPerRep" T="double" Label="@Localizer["Points per rep label"]" />
 
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Save</MudButton>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">@Localizer["Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

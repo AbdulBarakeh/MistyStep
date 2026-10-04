@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @using MistyStep.Services
+@inject LanguagePreferenceService LanguagePreferences
 @inject ThemePreferenceService ThemePreferences
+@inject IStringLocalizer<SharedResource> Localizer
 @implements IDisposable
 <MudThemeProvider Theme="@AppTheme" IsDarkMode="@ThemePreferences.IsDarkMode" />
 <MudPopoverProvider />
@@ -16,13 +18,13 @@
 
 <div class="app-shell @(ThemePreferences.IsDarkMode ? "app-shell-dark" : string.Empty)">
     <header class="app-header">
-        <a class="app-brand" href="" aria-label="MistyStep home">
+        <a class="app-brand" href="" aria-label="@Localizer["Home"]">
             <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" />
             <MudText Typo="Typo.subtitle1">MistyStep</MudText>
         </a>
         <div class="app-header-meta">
-            <MudText Typo="Typo.caption" Class="app-header-label">CIRCUIT TRAINING</MudText>
-            <MudIconButton Href="/settings" Icon="@Icons.Material.Outlined.Settings" Color="Color.Default" aria-label="Settings" title="Settings" />
+            <MudText Typo="Typo.caption" Class="app-header-label">@Localizer["Circuit training"]</MudText>
+            <MudIconButton Href="/settings" Icon="@Icons.Material.Outlined.Settings" Color="Color.Default" aria-label="@Localizer["Settings"]" title="@Localizer["Settings"]" />
         </div>
     </header>
     <main class="app-main">
@@ -72,12 +74,26 @@
     protected override async Task OnInitializedAsync()
     {
         ThemePreferences.ThemeChanged += HandleThemeChanged;
+        LanguagePreferences.LanguageChanged += HandleLanguageChanged;
         await ThemePreferences.InitializeAsync();
+        await LanguagePreferences.InitializeAsync();
     }
+
+    protected override void OnParametersSet() => LanguagePreferences.ApplyCurrentCulture();
 
     private void HandleThemeChanged() => _ = InvokeAsync(StateHasChanged);
 
-    public void Dispose() => ThemePreferences.ThemeChanged -= HandleThemeChanged;
+    private void HandleLanguageChanged() => _ = InvokeAsync(() =>
+    {
+        LanguagePreferences.ApplyCurrentCulture();
+        StateHasChanged();
+    });
+
+    public void Dispose()
+    {
+        ThemePreferences.ThemeChanged -= HandleThemeChanged;
+        LanguagePreferences.LanguageChanged -= HandleLanguageChanged;
+    }
 }
 
 

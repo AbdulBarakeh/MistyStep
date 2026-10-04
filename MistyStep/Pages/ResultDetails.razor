@@ -1,8 +1,9 @@
 ﻿@page "/result/{Id:guid}"
 @using MistyStep.Models
 @using MistyStep.Services
+@inject IStringLocalizer<SharedResource> Localizer
 
-<h1>Resultat</h1>
+<h1>@Localizer["Result"]</h1>
 
 <h1>@TotalScore.ToString()</h1>
 @if (Program?.PointTable.Count > 0)
@@ -11,21 +12,21 @@
         .OrderBy(band => band.MinimumPoints)
         .FirstOrDefault(band => TotalScore >= band.MinimumPoints && (band.MaximumPoints is null || TotalScore <= band.MaximumPoints));
     <MudPaper Class="pa-4 ma-4">
-        <MudText Typo="Typo.h6">Strength category</MudText>
-        <MudText>@(category?.Category ?? "No category defined for this score")</MudText>
+        <MudText Typo="Typo.h6">@Localizer["Strength category result"]</MudText>
+        <MudText>@(category?.Category ?? Localizer["No category defined for this score"].Value)</MudText>
         <MudTable Items="Program.PointTable.OrderBy(band => band.MinimumPoints)">
             <HeaderContent>
-                <MudTh>Category</MudTh>
-                <MudTh>Points</MudTh>
+                <MudTh>@Localizer["Category"]</MudTh>
+                <MudTh>@Localizer["Points"]</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Category">@context.Category</MudTd>
-                <MudTd DataLabel="Points">@context.MinimumPoints - @(context.MaximumPoints?.ToString() ?? "above")</MudTd>
+                <MudTd DataLabel="@Localizer["Category"]">@context.Category</MudTd>
+                <MudTd DataLabel="@Localizer["Points"]">@context.MinimumPoints - @(context.MaximumPoints?.ToString() ?? Localizer["Above"].Value)</MudTd>
             </RowTemplate>
         </MudTable>
     </MudPaper>
 }
-<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
+<MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">@Localizer["Exit"]</MudButton>
 
 @code {
 

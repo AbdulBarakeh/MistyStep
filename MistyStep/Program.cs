@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.JSInterop;
+using System.Globalization;
 using MistyStep;
 using MistyStep.Models;
 using MistyStep.Services;
@@ -13,9 +15,11 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped<IIndexedDbService, IndexedDbService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 builder.Services.AddScoped<ThemePreferenceService>();
+builder.Services.AddScoped<LanguagePreferenceService>();
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddMudServices();
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // Configure IndexedDB
 builder.Services.AddIndexedDB(dbStore =>
@@ -52,6 +56,15 @@ builder.Services.AddIndexedDB(dbStore =>
 });
 
 var host = builder.Build();
+var jsRuntime = host.Services.GetRequiredService<IJSRuntime>();
+var selectedLanguage = await jsRuntime.InvokeAsync<string>("mistyStepGetLanguage");
+host.Services.GetRequiredService<LanguagePreferenceService>().Initialize(selectedLanguage);
+var culture = CultureInfo.GetCultureInfo(selectedLanguage);
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+CultureInfo.CurrentCulture = culture;
+CultureInfo.CurrentUICulture = culture;
+
 var dbService = host.Services.GetRequiredService<IIndexedDbService>();
 await dbService.SeedPredefinedExercisesAsync();
 await host.RunAsync();

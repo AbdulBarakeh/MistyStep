@@ -1,64 +1,87 @@
 @page "/settings"
 @using MistyStep.Services
 @inject ThemePreferenceService ThemePreferences
+@inject LanguagePreferenceService LanguagePreferences
+@inject IStringLocalizer<SharedResource> Localizer
+@inject NavigationManager NavigationManager
 @inject IExerciseService ExerciseService
 @inject IJSRuntime JSRuntime
 @inject ISnackbar Snackbar
 
-<div class="settings-page">
+<div class="settings-page" data-language="@LanguagePreferences.Language">
     <div class="settings-heading">
-        <MudIconButton Href="/" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="Back to MistyStep" title="Back" />
+        <MudIconButton Href="/" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="@Localizer["Back to MistyStep"]" title="@Localizer["Back to MistyStep"]" />
         <div>
-            <MudText Typo="Typo.h5">Settings</MudText>
-            <MudText Typo="Typo.body2" Class="settings-section-copy">Appearance and local data</MudText>
+            <MudText Typo="Typo.h5">@Localizer["Settings"]</MudText>
+            <MudText Typo="Typo.body2" Class="settings-section-copy">@Localizer["Appearance and local data"]</MudText>
         </div>
     </div>
 
     <MudPaper Class="settings-section" Outlined="true" Elevation="0">
-        <MudText Typo="Typo.h6">Appearance</MudText>
-        <MudText Typo="Typo.body2" Class="settings-section-copy">Choose how MistyStep looks on this device.</MudText>
+        <MudText Typo="Typo.h6">@Localizer["Appearance"]</MudText>
+        <MudText Typo="Typo.body2" Class="settings-section-copy">@Localizer["Choose how MistyStep looks on this device."]</MudText>
 
-        <div class="theme-options" role="group" aria-label="Color theme">
+        <div class="theme-options" role="group" aria-label="@Localizer["Appearance"]">
             <div class="theme-option">
                 <MudButton Variant="@(ThemePreferences.Mode == "system" ? Variant.Filled : Variant.Outlined)"
                            Color="@(ThemePreferences.Mode == "system" ? Color.Primary : Color.Default)"
                            StartIcon="@Icons.Material.Outlined.BrightnessAuto"
                            aria-pressed="@(ThemePreferences.Mode == "system")"
-                           OnClick="@(() => ChangeTheme("system"))">System</MudButton>
+                           OnClick="@(() => ChangeTheme("system"))">@Localizer["System"]</MudButton>
             </div>
             <div class="theme-option">
                 <MudButton Variant="@(ThemePreferences.Mode == "light" ? Variant.Filled : Variant.Outlined)"
                            Color="@(ThemePreferences.Mode == "light" ? Color.Primary : Color.Default)"
                            StartIcon="@Icons.Material.Outlined.LightMode"
                            aria-pressed="@(ThemePreferences.Mode == "light")"
-                           OnClick="@(() => ChangeTheme("light"))">Light</MudButton>
+                           OnClick="@(() => ChangeTheme("light"))">@Localizer["Light"]</MudButton>
             </div>
             <div class="theme-option">
                 <MudButton Variant="@(ThemePreferences.Mode == "dark" ? Variant.Filled : Variant.Outlined)"
                            Color="@(ThemePreferences.Mode == "dark" ? Color.Primary : Color.Default)"
                            StartIcon="@Icons.Material.Outlined.DarkMode"
                            aria-pressed="@(ThemePreferences.Mode == "dark")"
-                           OnClick="@(() => ChangeTheme("dark"))">Dark</MudButton>
+                           OnClick="@(() => ChangeTheme("dark"))">@Localizer["Dark"]</MudButton>
             </div>
         </div>
-        <MudText Typo="Typo.caption" Class="settings-section-copy">Currently using @CurrentAppearance appearance.</MudText>
+        <MudText Typo="Typo.caption" Class="settings-section-copy">@Localizer["Currently using {0} appearance.", CurrentAppearance]</MudText>
     </MudPaper>
 
     <MudPaper Class="settings-section" Outlined="true" Elevation="0">
-        <MudText Typo="Typo.h6">Data backup</MudText>
+        <MudText Typo="Typo.h6">@Localizer["Language"]</MudText>
+        <MudText Typo="Typo.body2" Class="settings-section-copy">@Localizer["Choose your interface language."]</MudText>
+        <div class="theme-options" role="group" aria-label="@Localizer["Language"]">
+            <div class="theme-option">
+                <MudButton Variant="@(LanguagePreferences.Language == LanguagePreferenceService.EnglishUk ? Variant.Filled : Variant.Outlined)"
+                           Color="@(LanguagePreferences.Language == LanguagePreferenceService.EnglishUk ? Color.Primary : Color.Default)"
+                           aria-pressed="@(LanguagePreferences.Language == LanguagePreferenceService.EnglishUk)"
+                           OnClick="SelectEnglish">@Localizer["English (UK)"]</MudButton>
+            </div>
+            <div class="theme-option">
+                <MudButton Variant="@(LanguagePreferences.Language == LanguagePreferenceService.Danish ? Variant.Filled : Variant.Outlined)"
+                           Color="@(LanguagePreferences.Language == LanguagePreferenceService.Danish ? Color.Primary : Color.Default)"
+                           aria-pressed="@(LanguagePreferences.Language == LanguagePreferenceService.Danish)"
+                           OnClick="SelectDanish">@Localizer["Danish"]</MudButton>
+            </div>
+        </div>
+        <MudText Typo="Typo.caption" Class="settings-section-copy">@Localizer["Current language: {0}", CurrentLanguage]</MudText>
+    </MudPaper>
+
+    <MudPaper Class="settings-section" Outlined="true" Elevation="0">
+        <MudText Typo="Typo.h6">@Localizer["Data backup"]</MudText>
         <MudText Typo="Typo.body2" Class="settings-section-copy">
-            Export one file with all exercises, programs, point tables, and workout records. Import it on another device to restore your local data.
+            @Localizer["Export one file with all exercises, programs, point tables, and workout records. Import it on another device to restore your local data."]
         </MudText>
         <MudText Typo="Typo.caption" Class="settings-section-copy mt-2">
-            Import merges by ID: matching items are updated and other items already on this device are kept.
+            @Localizer["Import merges by ID: matching items are updated and other items already on this device are kept."]
         </MudText>
 
         <div class="settings-backup-actions">
             <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.FileDownload" OnClick="ExportBackup">
-                Export all data
+                @Localizer["Export all data"]
             </MudButton>
             <MudButton Color="Color.Primary" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.FileUpload" OnClick="ChooseBackup">
-                Import backup
+                @Localizer["Import backup"]
             </MudButton>
         </div>
         <InputFile id="fullBackupInput" style="display:none" OnChange="ImportBackup" accept=".json,application/json" />
@@ -66,12 +89,24 @@
 </div>
 
 @code {
-    private string CurrentAppearance => ThemePreferences.IsDarkMode ? "dark" : "light";
+    private string CurrentAppearance => Localizer[ThemePreferences.IsDarkMode ? "Dark" : "Light"];
+
+    private string CurrentLanguage => Localizer[LanguagePreferences.Language == LanguagePreferenceService.Danish ? "Danish" : "English (UK)"];
 
     private async Task ChangeTheme(string mode)
     {
         await ThemePreferences.SetModeAsync(mode);
         StateHasChanged();
+    }
+
+    private Task SelectEnglish() => ChangeLanguage(LanguagePreferenceService.EnglishUk);
+
+    private Task SelectDanish() => ChangeLanguage(LanguagePreferenceService.Danish);
+
+    private async Task ChangeLanguage(string language)
+    {
+        await LanguagePreferences.SetLanguageAsync(language);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     private async Task ExportBackup()
@@ -82,11 +117,11 @@
             var base64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
             var fileName = $"MistyStep-backup-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json";
             await JSRuntime.InvokeVoidAsync("downloadMistyStepFile", fileName, base64);
-            Snackbar.Add("Backup exported.", Severity.Success);
+            Snackbar.Add(Localizer["Backup exported."], Severity.Success);
         }
         catch (Exception exception)
         {
-            Snackbar.Add($"Export failed: {exception.Message}", Severity.Error);
+            Snackbar.Add(Localizer["Export failed: {0}", exception.Message], Severity.Error);
         }
     }
 
@@ -108,11 +143,11 @@
             await using var stream = file.OpenReadStream(25_000_000);
             using var reader = new StreamReader(stream);
             await ExerciseService.ImportDataAsync(await reader.ReadToEndAsync());
-            Snackbar.Add("Backup imported.", Severity.Success);
+            Snackbar.Add(Localizer["Backup imported."], Severity.Success);
         }
         catch (Exception exception)
         {
-            Snackbar.Add($"Import failed: {exception.Message}", Severity.Error);
+            Snackbar.Add(Localizer["Import failed: {0}", exception.Message], Severity.Error);
         }
     }
 }

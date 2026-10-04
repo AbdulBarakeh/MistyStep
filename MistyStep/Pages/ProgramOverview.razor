@@ -1,6 +1,7 @@
 ﻿@using MistyStep.Components
 @using MistyStep.Services
 @using System.Collections.ObjectModel
+@inject IStringLocalizer<SharedResource> Localizer
 <div class="catalog-page">
     <div class="catalog-scroll">
         <MudStack Class="catalog-list" Spacing="0">
@@ -13,14 +14,14 @@
                             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                                 <MudText Typo="Typo.subtitle1" Class="catalog-item-title">@program.Name</MudText>
                                 <MudStack Row="true" Spacing="0" Class="catalog-actions">
-                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" aria-label="Edit program" title="Edit program" OnClick="@(() => EditProgram(program))" />
-                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.FileDownload" aria-label="Export program with exercises and point table" title="Export program" OnClick="@(() => ExportProgram(program))" />
-                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="Delete program" title="Delete program" OnClick="@(() => DeleteProgram(program))" />
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" aria-label="@Localizer["Edit program"]" title="@Localizer["Edit program"]" OnClick="@(() => EditProgram(program))" />
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.FileDownload" aria-label="@Localizer["Export program with exercises and point table"]" title="@Localizer["Export program"]" OnClick="@(() => ExportProgram(program))" />
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="@Localizer["Delete program"]" title="@Localizer["Delete program"]" OnClick="@(() => DeleteProgram(program))" />
                                 </MudStack>
                             </MudStack>
                             <MudStack Row="true" Class="program-card-actions" Spacing="1">
-                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" StartIcon="@Icons.Material.Filled.PlayArrow" OnClick="@(() => RunProgram(program.Id))">Run program</MudButton>
-                                <MudButton Color="Color.Primary" Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Insights" OnClick="@(() => GoToRecords(program.Id))">Records</MudButton>
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" StartIcon="@Icons.Material.Filled.PlayArrow" OnClick="@(() => RunProgram(program.Id))">@Localizer["Run program"]</MudButton>
+                                <MudButton Color="Color.Primary" Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Insights" OnClick="@(() => GoToRecords(program.Id))">@Localizer["Records"]</MudButton>
                             </MudStack>
                         </MudStack>
                     </MudPaper>
@@ -30,8 +31,8 @@
             {
                 <div class="empty-state">
                     <div class="empty-state-icon"><MudIcon Icon="@Icons.Material.Outlined.FactCheck" Size="Size.Large" /></div>
-                    <MudText Typo="Typo.h6">No programs yet</MudText>
-                    <MudText Typo="Typo.body2" Class="empty-state-copy">Create a circuit from your exercise catalog, or import a program to get started.</MudText>
+                    <MudText Typo="Typo.h6">@Localizer["No programs yet"]</MudText>
+                    <MudText Typo="Typo.body2" Class="empty-state-copy">@Localizer["Create a circuit from your exercise catalog, or import a program to get started."]</MudText>
                 </div>
             }
             else
@@ -43,8 +44,8 @@
     </div>
     <InputFile id="programImportInput" style="display:none" OnChange="ImportFile" accept=".json,application/json" />
     <MudFabMenu StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" @bind-Open="IsFabExpanded" Fixed="true" OpenOnMouseHover="false">
-        <MudFabMenuItem StartIcon="@Icons.Material.Filled.Add" aria-label="Create program" title="Create program" OnClick="GoToProgramCreation" />
-        <MudFabMenuItem StartIcon="@Icons.Material.Filled.FileUpload" aria-label="Import exercises or a program" title="Import exercises or a program" OnClick="ImportClick" />
+        <MudFabMenuItem StartIcon="@Icons.Material.Filled.Add" aria-label="@Localizer["Create program"]" title="@Localizer["Create program"]" OnClick="GoToProgramCreation" />
+        <MudFabMenuItem StartIcon="@Icons.Material.Filled.FileUpload" aria-label="@Localizer["Import exercises or a program"]" title="@Localizer["Import exercises or a program"]" OnClick="ImportClick" />
     </MudFabMenu>
 </div>
 @code {
@@ -106,7 +107,7 @@
     private async Task EditProgram(Models.ExerciseProgram program)
     {
         var parameters = new DialogParameters { ["ProgramToEdit"] = program };
-        var dialog = await DialogService.ShowAsync<CreateExerciseProgramDialog>("Edit program", parameters);
+        var dialog = await DialogService.ShowAsync<CreateExerciseProgramDialog>(Localizer["Edit program"], parameters);
         _ = await dialog.Result;
         await ReloadPrograms();
     }
@@ -134,11 +135,11 @@
     {
         var parameters = new DialogParameters
         {
-            ["ItemType"] = "program",
+            ["ItemType"] = Localizer["Delete type program"].Value,
             ["ItemName"] = program.Name,
-            ["Details"] = "This also deletes all workout records for this program."
+            ["Details"] = Localizer["This also deletes all workout records for this program."].Value
         };
-        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>("Confirm delete", parameters);
+        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>(Localizer["Delete program"], parameters);
         var result = await dialog.Result;
         if (result is null || result.Canceled)
         {
@@ -146,7 +147,7 @@
         }
 
         await ExerciseService.DeleteExerciseProgramAsync(program.Id);
-        Snackbar.Add("Program deleted.", Severity.Success);
+        Snackbar.Add(Localizer["Program deleted."], Severity.Success);
         await ReloadPrograms();
     }
 
@@ -165,11 +166,11 @@
             using var reader = new StreamReader(stream);
             await ExerciseService.ImportDataAsync(await reader.ReadToEndAsync());
             await ReloadPrograms();
-            Snackbar.Add("Import completed.", Severity.Success);
+            Snackbar.Add(Localizer["Import completed."], Severity.Success);
         }
-        catch (Exception exception)
+        catch (Exception)
         {
-            Snackbar.Add($"Import failed: {exception.Message}", Severity.Error);
+            Snackbar.Add(Localizer["Import failed. Make sure the file is a valid MistyStep export."], Severity.Error);
         }
     }
 
