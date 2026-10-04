@@ -38,6 +38,8 @@ public class ExerciseProgram
 
     public int? PauseDurationInSeconds { get; set; }
 
+    public List<PointBand> PointTable { get; set; } = [];
+
     public ExerciseProgram(Guid Id, string Name, List<Guid> ExerciseIds, int? ExerciseDurationInSeconds, int? PauseDurationInSeconds)
     {
         this.Id = Id;
@@ -60,6 +62,22 @@ public class ExerciseProgram
     {
         this.Id = Guid.NewGuid();
     }
+}
+
+public class PointBand
+{
+    public string Category { get; set; } = "";
+    public double MinimumPoints { get; set; }
+    public double? MaximumPoints { get; set; }
+}
+
+public class TransferPackage
+{
+    public int FormatVersion { get; set; } = 1;
+    public string Type { get; set; } = "";
+    public Exercise? Exercise { get; set; }
+    public ExerciseProgram? Program { get; set; }
+    public List<Exercise> Exercises { get; set; } = [];
 }
 
 public record ExerciseRecord(Guid Id, DateTime RecordSet, Guid ExerciseId, Guid ExerciseProgramId, double Reps);

@@ -4,7 +4,7 @@
 
 <MudDialog Style="height:80%;">
     <TitleContent>
-        Create Exercise
+        @(ExerciseToEdit is null ? "Create Exercise" : "Edit Exercise")
     </TitleContent>
     <DialogContent>
         <MudForm Model="@ExerciseModel" @bind-IsValid="@success" @bind-Errors="@errors">
@@ -15,7 +15,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Register</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -32,6 +32,17 @@
     [Inject] NavigationManager NavigationManager { get; set; } = null!;
     private Exercise ExerciseModel { get; set; } = new();
 
+    [Parameter]
+    public Exercise? ExerciseToEdit { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (ExerciseToEdit is not null)
+        {
+            ExerciseModel = new Exercise(ExerciseToEdit.Id, ExerciseToEdit.Name, ExerciseToEdit.PointsPerRep);
+        }
+    }
+
     private async Task Submit()
     {
         await RegisterExercise();
@@ -40,7 +51,7 @@
 
     private async Task RegisterExercise()
     {
-        await ExerciseService.CreateNewExercise(ExerciseModel);
+        await ExerciseService.SaveExercise(ExerciseModel);
     }
 }
 

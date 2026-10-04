@@ -3,12 +3,6 @@
 @using MistyStep.Services
 @using System.Collections.ObjectModel
 <style>
-    .fabIcon {
-    position: absolute;
-    right: 2rem;
-    bottom: 2rem;
-    }
-
     .scroll-stack {
     overflow: auto;
     height: calc(100vh - var(--navbar-height));
@@ -24,7 +18,13 @@
                 @foreach (var exercise in Exercises)
                 {
                     <MudPaper Class="pa-5">
-                        @exercise.Name
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <div>@exercise.Name <MudText Typo="Typo.caption">@exercise.PointsPerRep points / rep</MudText></div>
+                            <MudStack Row="true" Spacing="1">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" aria-label="Edit exercise" OnClick="@(() => EditExercise(exercise))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.FileDownload" aria-label="Export exercise" OnClick="@(() => ExportExercise(exercise))" />
+                            </MudStack>
+                        </MudStack>
                     </MudPaper>
                 }
             }
@@ -36,7 +36,11 @@
             }
         </MudStack>
     </div>
-    <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToExerciseCreation" />
+    <InputFile id="exerciseImportInput" style="display:none" OnChange="ImportFile" accept=".json,application/json" />
+    <MudFabMenu StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" @bind-Open="IsFabExpanded" Fixed="true" OpenOnMouseHover="false">
+        <MudFabMenuItem StartIcon="@Icons.Material.Filled.Add" aria-label="Create exercise" title="Create exercise" OnClick="GoToExerciseCreation" />
+        <MudFabMenuItem StartIcon="@Icons.Material.Filled.FileUpload" aria-label="Import exercises or a program" title="Import exercises or a program" OnClick="ImportClick" />
+    </MudFabMenu>
 </div>
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
@@ -45,7 +49,13 @@
 
     [Inject] IExerciseService ExerciseService { get; set; } = null!;
 
+    [Inject] IJSRuntime JSRuntime { get; set; } = null!;
+
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+
     public ObservableCollection<Exercise> Exercises { get; set; } = [];
+
+    private bool IsFabExpanded { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -65,18 +75,68 @@
 
     private async Task GoToExerciseCreation()
     {
+        IsFabExpanded = false;
         var temp = await DialogService.ShowAsync<CreateExerciseDialog>();
         _ = await temp.Result;
 
+        await ReloadExercises();
+    }
+
+    private void ToggleFab() => IsFabExpanded = !IsFabExpanded;
+
+    private async Task ImportClick()
+    {
+        IsFabExpanded = false;
+        await JSRuntime.InvokeVoidAsync("clickMistyStepFileInput", "exerciseImportInput");
+    }
+
+    private async Task EditExercise(Exercise exercise)
+    {
+        var parameters = new DialogParameters { ["ExerciseToEdit"] = exercise };
+        var dialog = await DialogService.ShowAsync<CreateExerciseDialog>("Edit exercise", parameters);
+        _ = await dialog.Result;
+        await ReloadExercises();
+    }
+
+    private async Task ReloadExercises()
+    {
         Exercises.Clear();
         var exerciseResult = await ExerciseService.GetExercises();
-        if (!exerciseResult.IsSuccess)
+        if (exerciseResult.IsSuccess)
         {
-            // Handle error
+            exerciseResult.Data!.ForEach(exercise => Exercises.Add(exercise));
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ExportExercise(Exercise exercise)
+    {
+        var json = await ExerciseService.ExportExerciseAsync(exercise);
+        var base64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
+        await JSRuntime.InvokeVoidAsync("downloadMistyStepFile", $"mistystep-exercise-{exercise.Name}.json", base64);
+    }
+
+    private async Task ImportFile(InputFileChangeEventArgs args)
+    {
+        IsFabExpanded = false;
+        if (string.IsNullOrWhiteSpace(args.File.Name))
+        {
             return;
         }
-        exerciseResult.Data!.ForEach(exercise => Exercises.Add(exercise));
-        StateHasChanged();
+
+        try
+        {
+            await using var stream = args.File.OpenReadStream(1_000_000);
+            using var reader = new StreamReader(stream);
+            await ExerciseService.ImportDataAsync(await reader.ReadToEndAsync());
+            await ReloadExercises();
+            Snackbar.Add("Import completed.", Severity.Success);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Import failed: {exception.Message}", Severity.Error);
+        }
     }
 
 }

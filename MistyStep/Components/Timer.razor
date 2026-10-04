@@ -2,6 +2,10 @@
 
     <div class="outer-circle">
         <div class="timer">
+            @if (isPauseTimerRunning)
+            {
+                <div class="timer-phase">PAUSE</div>
+            }
             <h1>@(timeRemaining ?? TimeSpan.Zero)</h1>
         </div>
         <div class="circle">
@@ -42,6 +46,10 @@
 
     private System.Threading.Timer? timer;
 
+    private int timerGeneration;
+
+    private bool isPauseTimerRunning;
+
     [Inject]
     private IJSRuntime JSRuntime { get; set; } = null!;
 
@@ -52,20 +60,28 @@
             return;
         }
 
-        timeRemaining = TimeSpan.FromSeconds(timeDurationInSeconds + 1);
+        timeRemaining = TimeSpan.FromSeconds(timeDurationInSeconds);
+        isPauseTimerRunning = isPauseTimer;
+        var generation = ++timerGeneration;
+        await InvokeAsync(StateHasChanged);
+        await JSRuntime.InvokeVoidAsync("setAnimationDuration", timeDurationInSeconds);
         if (!isPauseTimer)
         {
-            timer = new System.Threading.Timer(TimerCallback, null, 0, 1000);
-            await JSRuntime.InvokeVoidAsync("setAnimationDuration", timeRemaining!.Value.TotalSeconds - 1);
+            timer = new System.Threading.Timer(TimerCallback, generation, 1000, 1000);
             return;
         }
-        timer = new System.Threading.Timer(PauseTimerCallback, null, 0, 1000);
+        timer = new System.Threading.Timer(PauseTimerCallback, generation, 1000, 1000);
 
     }
 
-    private async void TimerCallback(object state)
+    private async void TimerCallback(object? state)
     {
-        if (timeRemaining!.Value.TotalSeconds >= 1)
+        if (state is not int generation || generation != timerGeneration)
+        {
+            return;
+        }
+
+        if (timeRemaining!.Value.TotalSeconds > 1)
         {
             timeRemaining = timeRemaining!.Value.Subtract(TimeSpan.FromSeconds(1));
             await InvokeAsync(StateHasChanged);
@@ -74,13 +90,23 @@
         {
             timer!.Dispose();
             timer = null;
-            await OnTimerEnd.InvokeAsync(null);
+            timeRemaining = TimeSpan.Zero;
+            await InvokeAsync(StateHasChanged);
+            if (generation == timerGeneration)
+            {
+                await OnTimerEnd.InvokeAsync(null);
+            }
         }
     }
 
-    private async void PauseTimerCallback(object state)
+    private async void PauseTimerCallback(object? state)
     {
-        if (timeRemaining!.Value.TotalSeconds >= 1)
+        if (state is not int generation || generation != timerGeneration)
+        {
+            return;
+        }
+
+        if (timeRemaining!.Value.TotalSeconds > 1)
         {
             timeRemaining = timeRemaining!.Value.Subtract(TimeSpan.FromSeconds(1));
             await InvokeAsync(StateHasChanged);
@@ -89,7 +115,12 @@
         {
             timer!.Dispose();
             timer = null;
-            await OnPauseTimerEnd.InvokeAsync(null);
+            timeRemaining = TimeSpan.Zero;
+            await InvokeAsync(StateHasChanged);
+            if (generation == timerGeneration)
+            {
+                await OnPauseTimerEnd.InvokeAsync(null);
+            }
         }
     }
 
@@ -97,8 +128,10 @@
     {
         await JSRuntime.InvokeVoidAsync("resetTimer");
 
+        timerGeneration++;
         timer?.Dispose();
         timer = null;
         timeRemaining = null;
+        isPauseTimerRunning = false;
     }
 }

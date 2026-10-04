@@ -2,12 +2,6 @@
 @using MistyStep.Services
 @using System.Collections.ObjectModel
 <style>
-    .fabIcon {
-    position: absolute;
-    right: 2rem;
-    bottom: 2rem;
-    }
-
     .scroll-stack {
     overflow: auto;
     height: calc(100vh - var(--navbar-height));
@@ -29,6 +23,8 @@
                                 @program.Name
                                 <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => RunProgram(program.Id))">Kør Program</MudButton>
                                 <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" OnClick="@(() => GoToRecords(program.Id))">Se Program rekorder</MudButton>
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" aria-label="Edit program" OnClick="@(() => EditProgram(program))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.FileDownload" aria-label="Export program with exercises and point table" OnClick="@(() => ExportProgram(program))" />
                             </div>
                         </MudPaper>
                     }
@@ -40,8 +36,11 @@
            
         </MudStack>
     </div>
-
-    <MudFab Class="fabIcon" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Large" OnClick="GoToProgramCreation" />
+    <InputFile id="programImportInput" style="display:none" OnChange="ImportFile" accept=".json,application/json" />
+    <MudFabMenu StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" @bind-Open="IsFabExpanded" Fixed="true" OpenOnMouseHover="false">
+        <MudFabMenuItem StartIcon="@Icons.Material.Filled.Add" aria-label="Create program" title="Create program" OnClick="GoToProgramCreation" />
+        <MudFabMenuItem StartIcon="@Icons.Material.Filled.FileUpload" aria-label="Import exercises or a program" title="Import exercises or a program" OnClick="ImportClick" />
+    </MudFabMenu>
 </div>
 @code {
 
@@ -51,7 +50,13 @@
 
     [Inject] IExerciseService ExerciseService { get; set; } = null!;
 
+    [Inject] IJSRuntime JSRuntime { get; set; } = null!;
+
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+
     public ObservableCollection<Models.ExerciseProgram> Programs { get; set; } = [];
+
+    private bool IsFabExpanded { get; set; }
 
     
 
@@ -74,19 +79,69 @@
 
     private async Task GoToProgramCreation()
     {
+        IsFabExpanded = false;
         var temp = await DialogService.ShowAsync<CreateExerciseProgramDialog>();
         _ = await temp.Result;
 
+        await ReloadPrograms();
+
+    }
+
+    private void ToggleFab() => IsFabExpanded = !IsFabExpanded;
+
+    private async Task ImportClick()
+    {
+        IsFabExpanded = false;
+        await JSRuntime.InvokeVoidAsync("clickMistyStepFileInput", "programImportInput");
+    }
+
+    private async Task EditProgram(Models.ExerciseProgram program)
+    {
+        var parameters = new DialogParameters { ["ProgramToEdit"] = program };
+        var dialog = await DialogService.ShowAsync<CreateExerciseProgramDialog>("Edit program", parameters);
+        _ = await dialog.Result;
+        await ReloadPrograms();
+    }
+
+    private async Task ReloadPrograms()
+    {
         Programs.Clear();
-        var exerciseProgramsResult = await ExerciseService.GetExercisePrograms();
-        if (!exerciseProgramsResult.IsSuccess)
+        var result = await ExerciseService.GetExercisePrograms();
+        if (result.IsSuccess)
         {
-            // Handle error
+            result.Data!.ForEach(program => Programs.Add(program));
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ExportProgram(Models.ExerciseProgram program)
+    {
+        var json = await ExerciseService.ExportProgramAsync(program.Id);
+        var base64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
+        await JSRuntime.InvokeVoidAsync("downloadMistyStepFile", $"mistystep-program-{program.Name}.json", base64);
+    }
+
+    private async Task ImportFile(InputFileChangeEventArgs args)
+    {
+        IsFabExpanded = false;
+        if (string.IsNullOrWhiteSpace(args.File.Name))
+        {
             return;
         }
-        exerciseProgramsResult.Data!.ForEach(program => Programs.Add(program));
-        StateHasChanged();
 
+        try
+        {
+            await using var stream = args.File.OpenReadStream(1_000_000);
+            using var reader = new StreamReader(stream);
+            await ExerciseService.ImportDataAsync(await reader.ReadToEndAsync());
+            await ReloadPrograms();
+            Snackbar.Add("Import completed.", Severity.Success);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Import failed: {exception.Message}", Severity.Error);
+        }
     }
 
     private void RunProgram(Guid id)

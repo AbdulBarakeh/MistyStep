@@ -3,12 +3,12 @@
 @using MistyStep.Services
 <MudDialog Style="height:80%;">
     <TitleContent>
-        Create Exercise
+        @(ProgramToEdit is null ? "Create Program" : "Edit Program")
     </TitleContent>
     <DialogContent>
             <MudForm Model="@ExerciseProgram" @bind-IsValid="@success" @bind-Errors="@errors">
                 <MudTextField @bind-Value="ExerciseProgram.Name" T="string" Label="Program Name" Required="true" RequiredError="Program name is required!" />
-                <MudSelect T="Exercise" Label="Exercises" MultiSelection="true" SelectedValuesChanged="@(e => {ExerciseProgram.ExerciseIds = e.Select(x => x.Id).ToList();})">
+                <MudSelect T="Exercise" Label="Exercises" MultiSelection="true" @bind-SelectedValues="SelectedExercises">
                     @foreach (var exercise in AvailableExercises)
                     {
                         <MudSelectItem T="Exercise" Value="@exercise">@exercise.Name - @exercise.PointsPerRep</MudSelectItem>
@@ -17,11 +17,23 @@
                 <MudNumericField @bind-Value="ExerciseProgram.ExerciseDurationInSeconds" T="int?" Label="Exercise duration" />
                 <MudNumericField @bind-Value="ExerciseProgram.PauseDurationInSeconds" T="int?" Label="pause duration" />
 
+                <MudText Typo="Typo.subtitle1" Class="mt-4">Point table</MudText>
+                @foreach (var band in ExerciseProgram.PointTable)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudTextField @bind-Value="band.Category" Label="Strength category" />
+                        <MudNumericField @bind-Value="band.MinimumPoints" Label="From points" />
+                        <MudNumericField @bind-Value="band.MaximumPoints" Label="To points" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="Remove point band" OnClick="@(() => RemoveBand(band))" />
+                    </MudStack>
+                }
+                <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="AddBand">Add point band</MudButton>
+
             </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Register</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -39,16 +51,38 @@
     private ExerciseProgram ExerciseProgram { get; set; } = new();
     private List<Exercise> AvailableExercises = new List<Exercise>();
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    [Parameter]
+    public ExerciseProgram? ProgramToEdit { get; set; }
+
+    private IReadOnlyCollection<Exercise> SelectedExercises
     {
-        if (firstRender)
+        get => AvailableExercises.Where(exercise => ExerciseProgram.ExerciseIds.Contains(exercise.Id)).ToList();
+        set => ExerciseProgram.ExerciseIds = value.Select(exercise => exercise.Id).ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ProgramToEdit is not null)
         {
-            var exercisesResult = await ExerciseService.GetExercises();
-            if (!exercisesResult.IsSuccess)
+            ExerciseProgram = new ExerciseProgram(
+                ProgramToEdit.Id,
+                ProgramToEdit.Name,
+                ProgramToEdit.ExerciseIds.ToList(),
+                ProgramToEdit.ExerciseDurationInSeconds,
+                ProgramToEdit.PauseDurationInSeconds)
             {
-                // Handle error
-                return;
-            }
+                PointTable = ProgramToEdit.PointTable.Select(band => new PointBand
+                {
+                    Category = band.Category,
+                    MinimumPoints = band.MinimumPoints,
+                    MaximumPoints = band.MaximumPoints
+                }).ToList()
+            };
+        }
+
+        var exercisesResult = await ExerciseService.GetExercises();
+        if (exercisesResult.IsSuccess)
+        {
             AvailableExercises = exercisesResult.Data!;
         }
     }
@@ -61,8 +95,12 @@
 
     private async Task RegisterExerciseProgram()
     {
-        await ExerciseService.CreateNewExerciseProgram(ExerciseProgram);
+        await ExerciseService.SaveExerciseProgram(ExerciseProgram);
     }
+
+    private void AddBand() => ExerciseProgram.PointTable.Add(new PointBand());
+
+    private void RemoveBand(PointBand band) => ExerciseProgram.PointTable.Remove(band);
 }
 
 

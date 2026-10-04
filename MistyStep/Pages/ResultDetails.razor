@@ -5,6 +5,26 @@
 <h1>Resultat</h1>
 
 <h1>@TotalScore.ToString()</h1>
+@if (Program?.PointTable.Count > 0)
+{
+    var category = Program.PointTable
+        .OrderBy(band => band.MinimumPoints)
+        .FirstOrDefault(band => TotalScore >= band.MinimumPoints && (band.MaximumPoints is null || TotalScore <= band.MaximumPoints));
+    <MudPaper Class="pa-4 ma-4">
+        <MudText Typo="Typo.h6">Strength category</MudText>
+        <MudText>@(category?.Category ?? "No category defined for this score")</MudText>
+        <MudTable Items="Program.PointTable.OrderBy(band => band.MinimumPoints)">
+            <HeaderContent>
+                <MudTh>Category</MudTh>
+                <MudTh>Points</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Category">@context.Category</MudTd>
+                <MudTd DataLabel="Points">@context.MinimumPoints - @(context.MaximumPoints?.ToString() ?? "above")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
 <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
 
 @code {
@@ -34,6 +54,11 @@
 
         if (firstRender)
         {
+            var programResult = await ExerciseService.GetExerciseProgramById(Id);
+            if (programResult.IsSuccess)
+            {
+                Program = programResult.Data;
+            }
 
             var exerciseRecords = await ExerciseService.GetExerciseRecordsByProgramId(Id);
             if (!exerciseRecords.IsSuccess)

@@ -34,14 +34,14 @@
 
         @if (Program!.ExerciseDurationInSeconds is not null)
         {
-            <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="@(async () => await TimerEnd())"></MistyStep.Components.Timer>
+            <MistyStep.Components.Timer @ref="TimerComp" OnTimerEnd="TimerEnd" OnPauseTimerEnd="GoToNextExercise"></MistyStep.Components.Timer>
         }
 
         <div class="buttons-container">
 
             <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToResult">Go To Result</MudButton>
             <MudButton Color="Color.Tertiary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToOverview">Exit</MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" Disabled="@(Program!.ExerciseDurationInSeconds is null)" OnClick="@(() => TimerComp.StartTimer(Program!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Class="ml-2" Disabled="@(Program!.ExerciseDurationInSeconds is null)" OnClick="@(() => TimerComp!.StartTimer(Program!.ExerciseDurationInSeconds??60,false))">Start øvelse timer</MudButton>
             <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="GoToNextExercise">Next Exercise</MudButton>
         </div>
     }
@@ -85,6 +85,10 @@
 
     private bool Initialized { get; set; }
 
+    private bool IsAdvancing { get; set; }
+
+    private bool IsInitialTimerStarted { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
 
@@ -93,6 +97,12 @@
 
             await InitialDataLoad();
             StateHasChanged();
+        }
+
+        if (Initialized && !IsInitialTimerStarted && TimerComp is not null && Program?.ExerciseDurationInSeconds is int duration)
+        {
+            IsInitialTimerStarted = true;
+            await TimerComp.StartTimer(duration, false);
         }
 
     }
@@ -149,14 +159,24 @@
 
     private async Task TimerEnd()
     {
-        await Task.CompletedTask;
-        // alarm sound
+        if (Program?.PauseDurationInSeconds is int pauseDuration)
+        {
+            await TimerComp!.StartTimer(pauseDuration, true);
+            return;
+        }
 
+        await GoToNextExercise();
     }
 
 
     private async Task GoToNextExercise()
     {
+        if (IsAdvancing || CurrentExercise is null || Program is null)
+        {
+            return;
+        }
+
+        IsAdvancing = true;
         await DisposeTimers();
         var exerciseRecord = new ExerciseRecord(Guid.NewGuid(), StartTime, CurrentExercise!.Id, Program!.Id, InputValue);
         await ExerciseService.CreateNewExerciseRecord(exerciseRecord);
@@ -172,8 +192,16 @@
 
         await UpdateExerciseCounter();
         InputValue = 0;
+        IsAdvancing = false;
 
-        StateHasChanged();
+        if (Program.ExerciseDurationInSeconds is int duration)
+        {
+            await TimerComp!.StartTimer(duration, false);
+        }
+        else
+        {
+            StateHasChanged();
+        }
     }
 
     private async Task GoToResult()

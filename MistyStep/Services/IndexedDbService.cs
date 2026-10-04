@@ -1,6 +1,7 @@
 ﻿using AutoInterfaceAttributes;
 using MistyStep.Models;
 using System.Text.Json;
+using Microsoft.JSInterop;
 using TG.Blazor.IndexedDB;
 namespace MistyStep.Services;
 
@@ -10,9 +11,12 @@ public class IndexedDbService : IIndexedDbService
 
     private readonly IndexedDBManager _dbManager;
 
-    public IndexedDbService(IndexedDBManager dbManager)
+    private readonly IJSRuntime _jsRuntime;
+
+    public IndexedDbService(IndexedDBManager dbManager, IJSRuntime jsRuntime)
     {
         _dbManager = dbManager;
+        _jsRuntime = jsRuntime;
     }
 
     public async Task AddExerciseAsync(Exercise exercise)
@@ -25,6 +29,9 @@ public class IndexedDbService : IIndexedDbService
 
         await _dbManager.AddRecord(storeRecord);
     }
+
+    public Task UpsertExerciseAsync(Exercise exercise) =>
+        _jsRuntime.InvokeVoidAsync("mistyStepDbPut", "exercises", exercise).AsTask();
 
     public async Task<List<Exercise>> GetExercisesAsync()
     {
@@ -40,6 +47,9 @@ public class IndexedDbService : IIndexedDbService
         };
         await _dbManager.AddRecord(storeRecord);
     }
+
+    public Task UpsertProgramAsync(ExerciseProgram program) =>
+        _jsRuntime.InvokeVoidAsync("mistyStepDbPut", "exercisePrograms", program).AsTask();
 
     public async Task<List<ExerciseProgram>> GetProgramsAsync()
     {

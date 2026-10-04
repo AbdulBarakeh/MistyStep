@@ -1,4 +1,5 @@
 ﻿using MistyStep.Models;
+using System.Text.Json;
 
 namespace MistyStep.Services;
 [AutoInterfaceAttributes.AutoInterface]
@@ -15,6 +16,14 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
         return false;
     }
 
+    public Task<bool> SaveExercise(Exercise exercise) => SaveExerciseCore(exercise);
+
+    private async Task<bool> SaveExerciseCore(Exercise exercise)
+    {
+        await DbService.UpsertExerciseAsync(exercise);
+        return true;
+    }
+
     public async Task<bool> CreateNewExerciseProgram(ExerciseProgram program)
     {
         var temp = program;
@@ -25,6 +34,71 @@ public class ExerciseService(IIndexedDbService DbService) : IExerciseService
         }
         return false;
     }
+
+    public Task<bool> SaveExerciseProgram(ExerciseProgram program) => SaveProgramCore(program);
+
+    private async Task<bool> SaveProgramCore(ExerciseProgram program)
+    {
+        await DbService.UpsertProgramAsync(program);
+        return true;
+    }
+
+    public async Task<string> ExportExerciseAsync(Exercise exercise)
+    {
+        return JsonSerializer.Serialize(new TransferPackage { Type = "exercise", Exercise = exercise }, JsonOptions);
+    }
+
+    public async Task<string> ExportProgramAsync(Guid programId)
+    {
+        var program = await DbService.GetProgramByIdAsync(programId);
+        if (program is null)
+        {
+            throw new InvalidOperationException("The exercise program could not be found.");
+        }
+
+        var exercises = await DbService.GetExercisesAsync();
+        return JsonSerializer.Serialize(new TransferPackage
+        {
+            Type = "program",
+            Program = program,
+            Exercises = exercises.Where(exercise => program.ExerciseIds.Contains(exercise.Id)).ToList()
+        }, JsonOptions);
+    }
+
+    public async Task ImportDataAsync(string json)
+    {
+        var package = JsonSerializer.Deserialize<TransferPackage>(json, JsonOptions)
+            ?? throw new InvalidOperationException("The selected file is not a valid MistyStep export.");
+
+        if (package.FormatVersion != 1)
+        {
+            throw new InvalidOperationException("This MistyStep export version is not supported.");
+        }
+
+        if (package.Type == "exercise" && package.Exercise is not null)
+        {
+            await DbService.UpsertExerciseAsync(package.Exercise);
+            return;
+        }
+
+        if (package.Type == "program" && package.Program is not null)
+        {
+            foreach (var exercise in package.Exercises)
+            {
+                await DbService.UpsertExerciseAsync(exercise);
+            }
+
+            await DbService.UpsertProgramAsync(package.Program);
+            return;
+        }
+
+        throw new InvalidOperationException("The selected file does not contain an exercise or exercise program.");
+    }
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true
+    };
 
     public async Task<Result<ExerciseProgram>> GetExerciseProgramById(Guid programId)
     {
