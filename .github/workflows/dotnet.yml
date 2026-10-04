@@ -24,5 +24,36 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Install Playwright browsers
+      run: pwsh MistyStep.PlaywrightTests/bin/Debug/net9.0/playwright.ps1 install --with-deps chromium
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      env:
+        MISTYSTEP_BASE_URL: http://127.0.0.1:5197
+      run: |
+        dotnet run --project MistyStep/MistyStep.csproj --no-build --urls "$MISTYSTEP_BASE_URL" > "$RUNNER_TEMP/mistystep.log" 2>&1 &
+        app_pid=$!
+        trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+
+        node <<'NODE'
+        const url = process.env.MISTYSTEP_BASE_URL;
+        const deadline = Date.now() + 30000;
+
+        async function waitForApp() {
+          try {
+            const response = await fetch(url);
+            if (response.ok) return process.exit(0);
+          } catch {
+          }
+
+          if (Date.now() >= deadline) {
+            console.error(`MistyStep did not become ready at ${url}`);
+            process.exit(1);
+          }
+
+          setTimeout(waitForApp, 250);
+        }
+
+        waitForApp();
+        NODE
+
+        dotnet test --no-build --verbosity normal
