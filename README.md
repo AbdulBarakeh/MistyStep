@@ -36,3 +36,11 @@
       ExerciseProgramOverview --> ExerciseProgramResultView;
       ExerciseProgramOverview --> ActiveProgramView;
 ```
+
+## Deployment
+
+The `Build, test, and deploy MistyStep` GitHub Actions workflow builds and runs the Playwright tests on pushes and pull requests targeting `master`. Successful pushes to `master` and manual workflow runs publish the app to GitHub Pages.
+
+For the first deployment, open the repository's **Settings → Pages** and set **Build and deployment → Source** to **GitHub Actions**. The project site is published at <https://abdulbarakeh.github.io/mistystep/>. The workflow configures the project-site base path, PWA service worker, and SPA route fallback for that URL.
+
+See [MistyStep.PlaywrightTests/README.md](MistyStep.PlaywrightTests/README.md) for local and CI test setup.

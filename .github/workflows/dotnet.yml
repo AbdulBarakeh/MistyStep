@@ -1,18 +1,25 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: Build, test, and deploy MistyStep
 
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
 
     steps:
     - uses: actions/checkout@v4
@@ -57,3 +64,74 @@ jobs:
         NODE
 
         dotnet test --no-build --verbosity normal
+
+    - name: Configure GitHub Pages
+      if: github.event_name != 'pull_request'
+      id: pages
+      uses: actions/configure-pages@v5
+
+    - name: Publish GitHub Pages site
+      if: github.event_name != 'pull_request'
+      env:
+        PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        PUBLISH_ROOT: ${{ runner.temp }}/mistystep-pages
+      run: |
+        set -euo pipefail
+        dotnet publish MistyStep/MistyStep.csproj --configuration Release --no-restore --output "$PUBLISH_ROOT"
+
+        SITE_ROOT="$PUBLISH_ROOT/wwwroot"
+        BASE_PATH="${PAGES_BASE_PATH:-}"
+        if [[ -n "$BASE_PATH" ]]; then
+          BASE_PATH="${BASE_PATH%/}/"
+        else
+          BASE_PATH="/"
+        fi
+        export SITE_ROOT BASE_PATH
+
+        node <<'NODE'
+        const fs = require('node:fs');
+        const path = require('node:path');
+
+        const siteRoot = process.env.SITE_ROOT;
+        const basePath = process.env.BASE_PATH;
+        const indexPath = path.join(siteRoot, 'index.html');
+        const workerPath = path.join(siteRoot, 'service-worker.js');
+
+        let index = fs.readFileSync(indexPath, 'utf8');
+        if (!index.includes('<base href="/" />')) {
+          throw new Error('Could not find the root base href in the published index.html');
+        }
+        index = index.replace('<base href="/" />', `<base href="${basePath}" />`);
+        fs.writeFileSync(indexPath, index);
+
+        let worker = fs.readFileSync(workerPath, 'utf8');
+        if (!worker.includes('const base = "/";')) {
+          throw new Error('Could not find the root base path in the published service worker');
+        }
+        worker = worker.replace('const base = "/";', `const base = "${basePath}";`);
+        fs.writeFileSync(workerPath, worker);
+
+        fs.copyFileSync(indexPath, path.join(siteRoot, '404.html'));
+        fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
+        NODE
+
+    - name: Upload GitHub Pages artifact
+      if: github.event_name != 'pull_request'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ runner.temp }}/mistystep-pages/wwwroot
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
