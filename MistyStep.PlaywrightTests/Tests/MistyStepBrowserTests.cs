@@ -205,10 +205,12 @@ public class MistyStepBrowserTests : PageTest
 
         var repetitions = Page.GetByLabel("Repetitions");
         await repetitions.FillAsync("2");
+        await Expect(repetitions).ToHaveValueAsync("2");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Next exercise" }).ClickAsync();
         await Expect(Page.GetByText("EXERCISE 2 OF 2", new() { Exact = true })).ToBeVisibleAsync();
 
         await repetitions.FillAsync("3");
+        await Expect(repetitions).ToHaveValueAsync("3");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Next exercise" }).ClickAsync();
 
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Result" })).ToBeVisibleAsync();
