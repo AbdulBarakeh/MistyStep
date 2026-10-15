@@ -10,7 +10,7 @@
 
 <div class="settings-page" data-language="@LanguagePreferences.Language">
     <div class="settings-heading">
-        <MudIconButton Href="/" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="@Localizer["Back to MistyStep"]" title="@Localizer["Back to MistyStep"]" />
+        <MudIconButton Href="@NavigationManager.ToAbsoluteUri("./").ToString()" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="@Localizer["Back to MistyStep"]" title="@Localizer["Back to MistyStep"]" />
         <div>
             <MudText Typo="Typo.h5">@Localizer["Settings"]</MudText>
             <MudText Typo="Typo.body2" Class="settings-section-copy">@Localizer["Appearance and local data"]</MudText>

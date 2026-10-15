@@ -1,7 +1,112 @@
-﻿@inject IStringLocalizer<SharedResource> Localizer
+﻿@page "/record/program/{Id:guid}"
+@using MistyStep.Models
+@using MistyStep.Services
+@inject IExerciseService ExerciseService
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> Localizer
 
-<MudText Typo="Typo.h5">@Localizer["RecordOverview"]</MudText>
+<div class="settings-page">
+	@if (!IsLoaded)
+	{
+		<MudSkeleton Height="88px" />
+		<MudSkeleton Height="88px" />
+	}
+	else if (Program is null)
+	{
+		<MudText Typo="Typo.h5">@Localizer["Workout not found"]</MudText>
+	}
+	else
+	{
+		<div class="settings-heading">
+			<MudIconButton Href="@NavigationManager.ToAbsoluteUri("./").ToString()" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="@Localizer["Back to MistyStep"]" title="@Localizer["Back to MistyStep"]" />
+			<div>
+				<MudText Typo="Typo.h5">@Program.Name</MudText>
+				<MudText Typo="Typo.body2" Class="settings-section-copy">@Localizer["RecordOverview"]</MudText>
+			</div>
+		</div>
+
+		@if (Workouts.Count == 0)
+		{
+			<div class="empty-state">
+				<div class="empty-state-icon"><MudIcon Icon="@Icons.Material.Outlined.Insights" Size="Size.Large" /></div>
+				<MudText Typo="Typo.h6">@Localizer["No workout records"]</MudText>
+			</div>
+		}
+		else
+		{
+			<MudTable Items="Workouts" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm">
+				<HeaderContent>
+					<MudTh>@Localizer["Workout date"]</MudTh>
+					<MudTh>@Localizer["Exercises completed"]</MudTh>
+					<MudTh>@Localizer["Score"]</MudTh>
+					<MudTh></MudTh>
+				</HeaderContent>
+				<RowTemplate>
+					<MudTd DataLabel="@Localizer["Workout date"]">@context.RecordSet.ToLocalTime().ToString("g")</MudTd>
+					<MudTd DataLabel="@Localizer["Exercises completed"]">@context.ExerciseCount</MudTd>
+					<MudTd DataLabel="@Localizer["Score"]">@context.TotalPoints.ToString("0.##")</MudTd>
+					<MudTd>
+						<MudButton Color="Color.Primary" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ReceiptLong" OnClick="@(() => OpenDetails(context))">
+							@Localizer["Details"]
+						</MudButton>
+					</MudTd>
+				</RowTemplate>
+			</MudTable>
+		}
+	}
+</div>
 
 @code {
+	[Parameter]
+	public Guid Id { get; set; }
 
+	private ExerciseProgram? Program { get; set; }
+
+	private bool IsLoaded { get; set; }
+
+	private List<WorkoutSummary> Workouts { get; set; } = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		var programResult = await ExerciseService.GetExerciseProgramById(Id);
+		if (!programResult.IsSuccess || programResult.Data is null)
+		{
+			IsLoaded = true;
+			return;
+		}
+
+		Program = programResult.Data;
+		var recordsResult = await ExerciseService.GetExerciseRecordsByProgramId(Id);
+		if (!recordsResult.IsSuccess || recordsResult.Data is null || recordsResult.Data.Count == 0)
+		{
+			IsLoaded = true;
+			return;
+		}
+
+		var exerciseResult = await ExerciseService.GetExercisesByIds(recordsResult.Data.Select(record => record.ExerciseId).Distinct().ToList());
+		if (!exerciseResult.IsSuccess || exerciseResult.Data is null)
+		{
+			IsLoaded = true;
+			return;
+		}
+
+		var exercisesById = exerciseResult.Data.ToDictionary(exercise => exercise.Id);
+		Workouts = recordsResult.Data
+			.GroupBy(record => record.RecordSet)
+			.Select(group => new WorkoutSummary(
+				group.Key,
+				group.Count(),
+				group.Where(record => exercisesById.ContainsKey(record.ExerciseId))
+					.Sum(record => record.Reps * exercisesById[record.ExerciseId].PointsPerRep)))
+			.OrderByDescending(workout => workout.RecordSet)
+			.ToList();
+		IsLoaded = true;
+	}
+
+	private void OpenDetails(WorkoutSummary workout)
+	{
+		NavigationManager.NavigateTo($"record/program/{Id}/details/{workout.RecordSet.Ticks}");
+	}
+
+	private sealed record WorkoutSummary(DateTime RecordSet, int ExerciseCount, double TotalPoints);
 }

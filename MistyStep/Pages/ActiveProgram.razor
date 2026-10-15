@@ -206,7 +206,7 @@
     private async Task GoToResult()
     {
         await DisposeTimers();
-        NavigationManager.NavigateTo($"result/{Program!.Id}?time={StartTime}");
+        NavigationManager.NavigateTo($"result/{Program!.Id}?timeTicks={StartTime.Ticks}");
     }
 
     private async Task GoToOverview()

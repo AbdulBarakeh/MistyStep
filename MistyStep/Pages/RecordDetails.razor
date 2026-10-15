@@ -1,0 +1,111 @@
+@page "/record/program/{ProgramId:guid}/details/{RecordSetTicks:long}"
+@using MistyStep.Models
+@using MistyStep.Services
+@inject IExerciseService ExerciseService
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> Localizer
+
+<div class="settings-page">
+    @if (!IsLoaded)
+    {
+        <MudSkeleton Height="88px" />
+        <MudSkeleton Height="180px" />
+    }
+    else if (Program is null || Rows.Count == 0)
+    {
+        <MudText Typo="Typo.h5">@Localizer["Workout not found"]</MudText>
+        <MudButton Href="@NavigationManager.ToAbsoluteUri($"record/program/{ProgramId}").ToString()" StartIcon="@Icons.Material.Outlined.ArrowBack">
+            @Localizer["Back to records"]
+        </MudButton>
+    }
+    else
+    {
+        <div class="settings-heading">
+            <MudIconButton Href="@NavigationManager.ToAbsoluteUri($"record/program/{ProgramId}").ToString()" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="@Localizer["Back to records"]" title="@Localizer["Back to records"]" />
+            <div>
+                <MudText Typo="Typo.h5">@Localizer["Workout details"]</MudText>
+                <MudText Typo="Typo.body2" Class="settings-section-copy">@Program.Name · @RecordSet.ToLocalTime().ToString("g")</MudText>
+            </div>
+        </div>
+
+        <MudPaper Class="settings-section" Outlined="true" Elevation="0">
+            <MudText Typo="Typo.overline" Class="active-kicker">@Localizer["Total points"]</MudText>
+            <MudText Typo="Typo.h4">@TotalPoints.ToString("0.##")</MudText>
+        </MudPaper>
+
+        <MudTable Items="Rows" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>@Localizer["Exercises"]</MudTh>
+                <MudTh>@Localizer["Repetitions"]</MudTh>
+                <MudTh>@Localizer["Points per rep"]</MudTh>
+                <MudTh>@Localizer["Points earned"]</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="@Localizer["Exercises"]">@context.ExerciseName</MudTd>
+                <MudTd DataLabel="@Localizer["Repetitions"]">@context.Repetitions.ToString("0.##")</MudTd>
+                <MudTd DataLabel="@Localizer["Points per rep"]">@context.PointsPerRep.ToString("0.##")</MudTd>
+                <MudTd DataLabel="@Localizer["Points earned"]">@context.PointsEarned.ToString("0.##")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid ProgramId { get; set; }
+
+    [Parameter]
+    public long RecordSetTicks { get; set; }
+
+    private ExerciseProgram? Program { get; set; }
+
+    private DateTime RecordSet => new(RecordSetTicks, DateTimeKind.Utc);
+
+    private bool IsLoaded { get; set; }
+
+    private List<ExerciseRecordDetail> Rows { get; set; } = [];
+
+    private double TotalPoints => Rows.Sum(row => row.PointsEarned);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var programResult = await ExerciseService.GetExerciseProgramById(ProgramId);
+        if (!programResult.IsSuccess || programResult.Data is null)
+        {
+            IsLoaded = true;
+            return;
+        }
+
+        Program = programResult.Data;
+        var recordsResult = await ExerciseService.GetExerciseRecordsByProgramId(ProgramId);
+        if (!recordsResult.IsSuccess || recordsResult.Data is null)
+        {
+            IsLoaded = true;
+            return;
+        }
+
+        var records = recordsResult.Data.Where(record => record.RecordSet.Ticks == RecordSetTicks).ToList();
+        var exercisesResult = await ExerciseService.GetExercisesByIds(records.Select(record => record.ExerciseId).Distinct().ToList());
+        if (!exercisesResult.IsSuccess || exercisesResult.Data is null)
+        {
+            IsLoaded = true;
+            return;
+        }
+
+        var exercisesById = exercisesResult.Data.ToDictionary(exercise => exercise.Id);
+        Rows = records
+            .Where(record => exercisesById.ContainsKey(record.ExerciseId))
+            .Select(record =>
+            {
+                var exercise = exercisesById[record.ExerciseId];
+                return new ExerciseRecordDetail(exercise.Name, record.Reps, exercise.PointsPerRep);
+            })
+            .ToList();
+        IsLoaded = true;
+    }
+
+    private sealed record ExerciseRecordDetail(string ExerciseName, double Repetitions, double PointsPerRep)
+    {
+        public double PointsEarned => Repetitions * PointsPerRep;
+    }
+}

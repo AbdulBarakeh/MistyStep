@@ -82,6 +82,21 @@ public class MistyStepBrowserTests : PageTest
     }
 
     [Test]
+    public async Task SettingsAndHomeLinksResolveFromApplicationBaseUrl()
+    {
+        await OpenHomeAsync();
+        var applicationBase = new Uri($"{AppUrl}/");
+        var expectedSettingsUrl = new Uri(applicationBase, "settings").AbsoluteUri;
+        var settingsHref = await Page.GetByRole(AriaRole.Link, new() { Name = "Settings" }).GetAttributeAsync("href");
+        Assert.That(new Uri(new Uri(Page.Url), settingsHref).AbsoluteUri, Is.EqualTo(expectedSettingsUrl));
+
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Settings" }).ClickAsync();
+        var expectedHomeUrl = applicationBase.AbsoluteUri;
+        var homeHref = await Page.GetByRole(AriaRole.Link, new() { Name = "Back to MistyStep" }).GetAttributeAsync("href");
+        Assert.That(new Uri(new Uri(Page.Url), homeHref).AbsoluteUri, Is.EqualTo(expectedHomeUrl));
+    }
+
+    [Test]
     public async Task BackupImportAndExportRetainProgramsPointBandsAndRecords()
     {
         var backup = CreateBackupFixture(programmeCount: 2);
@@ -179,6 +194,36 @@ public class MistyStepBrowserTests : PageTest
         await Expect(repetitions).ToHaveValueAsync("0");
     }
 
+    [Test]
+    public async Task CompletingProgrammeShowsWeightedFinalResult()
+    {
+        var backup = CreateBackupFixture(exerciseCount: 2, exerciseDuration: null, pauseDuration: null, includeRecord: false);
+        await ImportBackupAsync(backup.Json);
+        await OpenHomeAsync();
+        await Page.GetByRole(AriaRole.Tab, new() { Name = "Programmes" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Run programme" }).ClickAsync();
+
+        var repetitions = Page.GetByLabel("Repetitions");
+        await repetitions.FillAsync("2");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Next exercise" }).ClickAsync();
+        await Expect(Page.GetByText("EXERCISE 2 OF 2", new() { Exact = true })).ToBeVisibleAsync();
+
+        await repetitions.FillAsync("3");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Next exercise" }).ClickAsync();
+
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Result" })).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "21", Exact = true })).ToBeVisibleAsync();
+
+        await Page.GotoAsync($"{AppUrl}/record/program/{backup.ProgrammeIds[0]}");
+        var workoutRow = Page.GetByRole(AriaRole.Row).Filter(new LocatorFilterOptions { HasTextString = "21" });
+        await Expect(workoutRow).ToBeVisibleAsync();
+        await workoutRow.GetByRole(AriaRole.Button, new() { Name = "Details" }).ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Workout details" })).ToBeVisibleAsync();
+        await Expect(Page.GetByText("21", new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByText("6", new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByText("15", new() { Exact = true })).ToBeVisibleAsync();
+    }
+
     private async Task OpenHomeAsync()
     {
         await Page.GotoAsync(AppUrl);
@@ -206,8 +251,8 @@ public class MistyStepBrowserTests : PageTest
     private static BackupFixture CreateBackupFixture(
         int programmeCount = 1,
         int exerciseCount = 1,
-        int exerciseDuration = 30,
-        int pauseDuration = 10,
+        int? exerciseDuration = 30,
+        int? pauseDuration = 10,
         bool includeRecord = true)
     {
         var exerciseName = $"Playwright exercise {Guid.NewGuid():N}";
@@ -216,7 +261,7 @@ public class MistyStepBrowserTests : PageTest
             {
                 id = Guid.NewGuid(),
                 name = index == 0 ? exerciseName : $"{exerciseName} {index + 1}",
-                pointsPerRep = 3d
+                pointsPerRep = index == 0 ? 3d : 5d
             })
             .ToArray();
         var exerciseIds = exercises.Select(exercise => exercise.id).ToArray();
@@ -259,8 +304,8 @@ public class MistyStepBrowserTests : PageTest
             records
         }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-        return new BackupFixture(json, exerciseName, programmes.Select(programme => programme.name).ToArray(), recordId);
+        return new BackupFixture(json, exerciseName, programmes.Select(programme => programme.name).ToArray(), programmes.Select(programme => programme.id).ToArray(), recordId);
     }
 
-    private sealed record BackupFixture(string Json, string ExerciseName, string[] ProgrammeNames, Guid RecordId);
+    private sealed record BackupFixture(string Json, string ExerciseName, string[] ProgrammeNames, Guid[] ProgrammeIds, Guid RecordId);
 }

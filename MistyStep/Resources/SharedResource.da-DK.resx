@@ -93,6 +93,16 @@
   <data name="Delete type program"><value>program</value></data>
   <data name="RecordOverview"><value>Rekorder</value></data>
   <data name="Back to MistyStep"><value>Tilbage til MistyStep</value></data>
+  <data name="Workout date"><value>Træningsdato</value></data>
+  <data name="Exercises completed"><value>Fuldførte øvelser</value></data>
+  <data name="Score"><value>Resultat</value></data>
+  <data name="Details"><value>Detaljer</value></data>
+  <data name="No workout records"><value>Ingen træningsresultater endnu</value></data>
+  <data name="Workout details"><value>Træningsdetaljer</value></data>
+  <data name="Back to records"><value>Tilbage til rekorder</value></data>
+  <data name="Points earned"><value>Optjente point</value></data>
+  <data name="Total points"><value>Point i alt</value></data>
+  <data name="Workout not found"><value>Træningen blev ikke fundet</value></data>
   <data name="Page not found"><value>Siden blev ikke fundet</value></data>
   <data name="Sorry, there is nothing at this address."><value>Adressen findes ikke.</value></data>
 </root>

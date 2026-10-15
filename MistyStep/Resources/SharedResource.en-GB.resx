@@ -93,6 +93,16 @@
   <data name="Delete type program"><value>programme</value></data>
   <data name="RecordOverview"><value>Records</value></data>
   <data name="Back to MistyStep"><value>Back to MistyStep</value></data>
+  <data name="Workout date"><value>Workout date</value></data>
+  <data name="Exercises completed"><value>Exercises completed</value></data>
+  <data name="Score"><value>Score</value></data>
+  <data name="Details"><value>Details</value></data>
+  <data name="No workout records"><value>No workout records yet</value></data>
+  <data name="Workout details"><value>Workout details</value></data>
+  <data name="Back to records"><value>Back to records</value></data>
+  <data name="Points earned"><value>Points earned</value></data>
+  <data name="Total points"><value>Total points</value></data>
+  <data name="Workout not found"><value>Workout not found</value></data>
   <data name="Page not found"><value>Page not found</value></data>
   <data name="Sorry, there is nothing at this address."><value>Sorry, there is nothing at this address.</value></data>
 </root>

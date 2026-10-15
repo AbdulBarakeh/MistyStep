@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @using MistyStep.Services
+@inject NavigationManager NavigationManager
 @inject LanguagePreferenceService LanguagePreferences
 @inject ThemePreferenceService ThemePreferences
 @inject IStringLocalizer<SharedResource> Localizer
@@ -18,13 +19,13 @@
 
 <div class="app-shell @(ThemePreferences.IsDarkMode ? "app-shell-dark" : string.Empty)">
     <header class="app-header">
-        <a class="app-brand" href="" aria-label="@Localizer["Home"]">
+        <a class="app-brand" href="@NavigationManager.ToAbsoluteUri("./").ToString()" aria-label="@Localizer["Home"]">
             <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" />
             <MudText Typo="Typo.subtitle1">MistyStep</MudText>
         </a>
         <div class="app-header-meta">
             <MudText Typo="Typo.caption" Class="app-header-label">@Localizer["Circuit training"]</MudText>
-            <MudIconButton Href="/settings" Icon="@Icons.Material.Outlined.Settings" Color="Color.Default" aria-label="@Localizer["Settings"]" title="@Localizer["Settings"]" />
+            <MudIconButton Href="@NavigationManager.ToAbsoluteUri("./settings").ToString()" Icon="@Icons.Material.Outlined.Settings" Color="Color.Default" aria-label="@Localizer["Settings"]" title="@Localizer["Settings"]" />
         </div>
     </header>
     <main class="app-main">
