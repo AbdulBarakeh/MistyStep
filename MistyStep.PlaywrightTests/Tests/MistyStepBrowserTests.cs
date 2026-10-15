@@ -212,14 +212,14 @@ public class MistyStepBrowserTests : PageTest
         await Page.GetByRole(AriaRole.Button, new() { Name = "Next exercise" }).ClickAsync();
 
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Result" })).ToBeVisibleAsync();
-        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "21", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "19", Exact = true })).ToBeVisibleAsync();
 
         await Page.GotoAsync($"{AppUrl}/record/program/{backup.ProgrammeIds[0]}");
-        var workoutRow = Page.GetByRole(AriaRole.Row).Filter(new LocatorFilterOptions { HasTextString = "21" });
+        var workoutRow = Page.GetByRole(AriaRole.Row).Filter(new LocatorFilterOptions { HasTextString = "19" });
         await Expect(workoutRow).ToBeVisibleAsync();
         await workoutRow.GetByRole(AriaRole.Button, new() { Name = "Details" }).ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Workout details" })).ToBeVisibleAsync();
-        await Expect(Page.GetByText("21", new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByText("19", new() { Exact = true })).ToBeVisibleAsync();
         await Expect(Page.GetByText("6", new() { Exact = true })).ToBeVisibleAsync();
         await Expect(Page.GetByText("15", new() { Exact = true })).ToBeVisibleAsync();
     }
